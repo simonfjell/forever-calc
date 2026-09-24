@@ -1,0 +1,746 @@
+<meta charset="utf-8">
+<title>Forever Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root{color-scheme:dark;--bg:#14111a;--panel:#1c1824;--panel2:#231e2e;--line:#342c44;--text:#ece5d6;--muted:#a39bb3;--gold:#e3b95c;--lilac:#a996ff;--up:#7fd3a2;--down:#ef8674;
+--disp:'Cinzel',Georgia,serif;--body:'Source Sans 3',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--text);font:16px/1.5 var(--body);padding-inline:16px}
+#calcapp .wrap{max-width:1080px;margin:0 auto;padding-block:28px 64px;display:flex;flex-direction:column;gap:22px}
+#calcapp header{display:flex;flex-direction:column;gap:6px}
+#calcapp .eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600}
+#calcapp h1{font:700 clamp(26px,4.4vw,40px)/1.1 var(--disp);margin:0;text-wrap:balance}
+#calcapp .lede{color:var(--muted);max-width:66ch;margin:0}
+#calcapp .lede b{color:var(--text);font-weight:600}
+#calcapp .controls{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);padding-block:12px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:12px}
+#calcapp .classes{display:flex;flex-wrap:wrap;gap:6px}
+#calcapp .cls{--cc:#fff;appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--text);font:600 14px var(--body);padding:7px 12px 7px 10px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+#calcapp .cls::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--cc)}
+#calcapp .cls[aria-pressed="true"]{background:color-mix(in srgb,var(--cc) 18%,var(--panel));border-color:var(--cc)}
+#calcapp .cls:focus-visible,#calcapp .stat input:focus-visible,#calcapp .step:focus-visible,#calcapp .seg button:focus-visible,#calcapp summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+#calcapp .stats{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+#calcapp .stat{display:flex;flex-direction:column;gap:4px}
+#calcapp .stat label{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+#calcapp .field{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:10px;background:var(--panel);overflow:hidden}
+#calcapp .field input{width:84px;background:transparent;border:0;color:var(--text);font:600 18px var(--mono);text-align:center;padding:6px 4px}
+#calcapp .step{appearance:none;border:0;background:var(--panel2);color:var(--muted);width:34px;font:600 18px var(--body);cursor:pointer}
+#calcapp .step:hover{color:var(--text)}
+#calcapp .stat.off{opacity:.45}
+#calcapp .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-left:auto}
+#calcapp .seg button{appearance:none;border:0;background:var(--panel);color:var(--muted);font:600 13px var(--body);padding:9px 12px;cursor:pointer}
+#calcapp .seg button[aria-pressed="true"]{background:var(--panel2);color:var(--text)}
+#calcapp .seg2{display:inline-flex;align-self:flex-start;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+#calcapp .seg2 button{appearance:none;border:0;background:var(--panel);color:var(--muted);font:600 13.5px var(--body);padding:9px 14px;cursor:pointer}
+#calcapp .seg2 button[aria-pressed="true"]{background:var(--gold);color:#1a1522}
+#calcapp .seg2 button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+#calcapp .link{appearance:none;border:0;background:none;color:var(--gold);font:600 14px var(--body);text-decoration:underline;cursor:pointer;padding:0}
+#calcapp .uv{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--down);border:1px solid color-mix(in srgb,var(--down) 50%,transparent);border-radius:999px;padding:1px 7px;margin-left:6px;vertical-align:2px}
+#calcapp .summary{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:baseline;padding:16px 18px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+#calcapp .summary .big{font:700 26px var(--disp);color:var(--cc,var(--text))}
+#calcapp .summary span{color:var(--muted)}
+#calcapp .summary b{color:var(--text);font-family:var(--mono);font-weight:600}
+#calcapp .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+#calcapp .legend i{display:inline-block;vertical-align:middle;margin-right:6px}
+#calcapp .lg-f{width:18px;height:8px;background:var(--gold);border-radius:2px}
+#calcapp .lg-c{width:3px;height:14px;background:var(--lilac)}
+#calcapp section h2{font:600 13px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:10px 0 8px;display:flex;justify-content:space-between;gap:12px}
+#calcapp .head,#calcapp .row{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1.6fr) 92px 92px 132px;gap:14px;align-items:center}
+#calcapp .head{font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;padding:0 14px 6px}
+#calcapp .head div:nth-child(n+3){text-align:right}
+#calcapp .list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+#calcapp .row{padding:12px 14px;background:var(--panel);border-top:1px solid var(--line)}
+#calcapp .row:first-child{border-top:0}
+#calcapp .name{font-weight:600;font-size:16.5px}
+#calcapp .name small{color:var(--muted);font-weight:400;font-family:var(--mono);font-size:12px;margin-left:6px}
+#calcapp .sub{font-size:13px;color:var(--muted);line-height:1.35}
+#calcapp .new{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);border:1px solid color-mix(in srgb,var(--gold) 50%,transparent);border-radius:999px;padding:1px 7px;margin-left:6px;vertical-align:2px}
+#calcapp .track{position:relative;height:14px;background:var(--panel2);border-radius:4px}
+#calcapp .fill{position:absolute;left:0;top:0;bottom:0;background:var(--gold);border-radius:4px;transition:width .25s ease}
+#calcapp .tick{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1px;background:var(--lilac);border-radius:2px;transition:left .25s ease}
+#calcapp .num{text-align:right;font:600 16px var(--mono);font-variant-numeric:tabular-nums}
+#calcapp .num.muted{color:var(--muted);font-weight:400}
+#calcapp .need{text-align:right;font-size:13px;line-height:1.3}
+#calcapp .pill{display:inline-block;font-weight:600;font-size:12.5px;padding:2px 8px;border-radius:999px}
+#calcapp .pill.up{color:var(--up);background:color-mix(in srgb,var(--up) 14%,transparent)}
+#calcapp .pill.down{color:var(--down);background:color-mix(in srgb,var(--down) 14%,transparent)}
+#calcapp .need .sub{margin-top:3px}
+#calcapp .na{color:var(--muted);font-size:13px}
+#calcapp .lbl{display:none}
+#calcapp details{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:10px}
+#calcapp summary{cursor:pointer;color:var(--muted);font-size:14px}
+#calcapp details .stats{margin-top:10px}
+#calcapp .est{margin:0 0 10px;padding:12px 14px;border:1px dashed color-mix(in srgb,var(--gold) 55%,transparent);border-radius:12px;color:var(--muted);font-size:14px}
+#calcapp .est b{color:var(--gold)}
+#calcapp .log{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+#calcapp .log div{display:grid;grid-template-columns:110px 1fr;gap:12px;padding:10px 14px;background:var(--panel);border-top:1px solid var(--line);font-size:14.5px}
+#calcapp .log div:first-child{border-top:0}
+#calcapp .log time{font-family:var(--mono);color:var(--gold);font-size:13px}
+#calcapp .empty{padding:18px;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:14px}
+#calcapp footer{color:var(--muted);font-size:13px;display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:16px}
+#calcapp footer a{color:var(--lilac)}
+#calcapp .cta{align-self:flex-start;margin-top:10px;appearance:none;border:0;background:var(--gold);color:#1a1522;font:700 17px var(--body);padding:13px 22px;border-radius:12px;cursor:pointer;box-shadow:0 6px 22px color-mix(in srgb,var(--gold) 28%,transparent);transition:transform .15s ease,box-shadow .15s ease}
+#calcapp .cta:hover{transform:translateY(-1px);box-shadow:0 8px 28px color-mix(in srgb,var(--gold) 40%,transparent)}
+#calcapp .cta span{display:inline-block;margin-left:4px;transition:transform .15s ease}
+#calcapp .cta:hover span{transform:translateX(3px)}
+#calcapp .cta:focus-visible,#calcapp .fab:focus-visible{outline:2px solid var(--text);outline-offset:3px}
+#calcapp .fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:20;appearance:none;border:0;background:var(--gold);color:#1a1522;font:700 15px var(--body);padding:12px 18px 12px 14px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;box-shadow:0 8px 26px rgba(0,0,0,.45)}
+#calcapp .fab:hover{filter:brightness(1.06)}
+@media (prefers-reduced-motion:reduce){#calcapp .cta,#calcapp .cta span{transition:none}}
+#calcapp .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+#calcapp .tab{appearance:none;border:0;background:none;color:var(--muted);font:700 16px var(--disp);letter-spacing:.02em;padding:10px 14px 12px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+#calcapp .tab[aria-selected="true"]{color:var(--text);border-bottom-color:var(--gold)}
+#calcapp .tab:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+#calcapp .method{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+#calcapp .method .card .f{font:600 18px var(--mono);color:var(--text);margin:4px 0}
+#calcapp .method .card .k{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--gold)}
+#calcapp .method .card:nth-child(2) .k{color:var(--lilac)}
+#calcapp .example{font-size:15px;color:var(--muted)}
+#calcapp .example b{color:var(--text)}
+#calcapp .chap{display:flex;flex-direction:column;gap:10px;padding-top:6px}
+#calcapp .chap .eb{font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--cc);display:flex;align-items:center;gap:8px}
+#calcapp .chap .eb::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--cc)}
+#calcapp .chap h3{margin:0;font:700 clamp(19px,2.4vw,23px)/1.25 var(--disp);text-wrap:balance}
+#calcapp .chap .note{margin:0;color:var(--muted);font-size:14.5px;max-width:75ch}
+#calcapp .tw{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+#calcapp table.rt{width:100%;border-collapse:collapse;font-size:15px;min-width:640px}
+#calcapp .rt th{font:600 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:right;padding:10px 14px;background:var(--panel2);white-space:nowrap}
+#calcapp .rt th:first-child,#calcapp .rt td:first-child{text-align:left}
+#calcapp .rt td{padding:9px 14px;text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;border-top:1px solid var(--line);background:var(--panel)}
+#calcapp .rt td:first-child{font-family:var(--body);font-weight:600}
+#calcapp .rt td:first-child small{color:var(--muted);font-weight:400;font-family:var(--mono);font-size:12px;margin-left:5px}
+#calcapp .rt .dn{color:var(--down)}
+#calcapp .rt .gd{color:var(--gold);font-weight:600}
+#calcapp .rt .mu{color:var(--muted)}
+#calcapp .open{align-self:flex-start;appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--text);font:600 13.5px var(--body);padding:7px 12px;border-radius:999px;cursor:pointer}
+#calcapp .open:hover{border-color:var(--cc)}
+#calcapp .statement{background:var(--gold);color:#1a1522;border-radius:18px;padding:clamp(22px,4vw,40px);display:flex;flex-direction:column;gap:10px}
+#calcapp .statement h2{font:700 clamp(24px,3.6vw,38px)/1.15 var(--disp);margin:0;text-wrap:balance;color:#1a1522}
+#calcapp .statement p{margin:0;font-size:17px;max-width:70ch;color:#2e2538}
+#calcapp .block{display:flex;flex-direction:column;gap:12px}
+#calcapp .block>h2{font:700 clamp(20px,2.6vw,26px)/1.2 var(--disp);margin:0}
+#calcapp .block>p.sub2{margin:0;color:var(--muted);max-width:66ch}
+#calcapp .ov{display:flex;flex-direction:column;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+#calcapp .ovr{appearance:none;border:0;background:transparent;color:var(--text);display:grid;grid-template-columns:minmax(120px,210px) 1fr 56px;gap:12px;align-items:center;padding:4px 6px;border-radius:8px;cursor:pointer;font:inherit;text-align:left}
+#calcapp .ovr:hover{background:var(--panel2)}
+#calcapp .ovr:focus-visible{outline:2px solid var(--gold)}
+#calcapp .ovr .l{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#calcapp .ovr .l span{color:var(--muted);font-weight:400;font-size:13px;margin-left:4px}
+#calcapp .ovr .b{height:16px;border-radius:0 5px 5px 0;background:var(--cc)}
+#calcapp .ovr .v{font:600 15px var(--mono);text-align:right}
+#calcapp .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+#calcapp .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:6px}
+#calcapp .card h3{margin:0;font-size:17px;display:flex;gap:8px;align-items:center}
+#calcapp .card h3::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--k,var(--up));flex:none}
+#calcapp .card p{margin:0;color:var(--muted);font-size:14.5px}
+#calcapp .card.warn{--k:var(--gold)}
+#calcapp #calc{scroll-margin-top:10px}
+@media (max-width:720px){#calcapp .ovr{grid-template-columns:120px 1fr 44px}
+#calcapp .head{display:none}
+#calcapp .row{grid-template-columns:1fr 1fr;gap:8px 12px}
+#calcapp .row .nm{grid-column:1/-1}
+#calcapp .row .bar{grid-column:1/-1}
+#calcapp .num,#calcapp .need{text-align:left}
+#calcapp .lbl{display:block;font:400 11px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+#calcapp .row .need{grid-column:1/-1}
+#calcapp .seg{margin-left:0}}
+@media (prefers-reduced-motion:reduce){#calcapp .fill,#calcapp .tick{transition:none}}
+:root{color-scheme:dark;--bg:#14111a;--panel:#1c1824;--panel2:#231e2e;--line:#342c44;--text:#ece5d6;--muted:#a39bb3;--gold:#e3b95c;--lilac:#a996ff;--up:#7fd3a2;--down:#ef8674;--warn:#e9a14b;
+--disp:'Cinzel',Georgia,serif;--body:'Source Sans 3',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--text);font:16px/1.5 var(--body);padding-inline:16px;margin:0}
+#prof .wrap{max-width:1080px;margin:0 auto;padding-block:28px 64px;display:flex;flex-direction:column;gap:24px}
+#prof .eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600}
+#prof h1{font:700 clamp(26px,4.4vw,40px)/1.1 var(--disp);margin:6px 0 8px;text-wrap:balance}
+#prof h2{font:700 clamp(20px,2.6vw,26px)/1.2 var(--disp);margin:0}
+#prof .lede{color:var(--muted);max-width:68ch;margin:0}
+#prof .draft{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 55%,transparent);border-radius:999px;padding:2px 9px;margin-left:8px;vertical-align:4px;font-family:var(--body)}
+#prof .sub2{margin:0;color:var(--muted);max-width:70ch}
+#prof .block{display:flex;flex-direction:column;gap:12px}
+#prof .classes{display:flex;flex-wrap:wrap;gap:6px}
+#prof .cls{--cc:#fff;appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--text);font:600 14px var(--body);padding:7px 12px 7px 10px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+#prof .cls::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--cc)}
+#prof .cls[aria-pressed="true"]{background:color-mix(in srgb,var(--cc) 18%,var(--panel));border-color:var(--cc)}
+#prof button:focus-visible,#prof select:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+#prof .legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted)}
+#prof .tag{display:inline-block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;border-radius:999px;padding:1px 8px;border:1px solid}
+#prof .t-d{color:var(--up);border-color:color-mix(in srgb,var(--up) 50%,transparent)}
+#prof .t-r{color:var(--lilac);border-color:color-mix(in srgb,var(--lilac) 50%,transparent)}
+#prof .t-u{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 50%,transparent)}
+#prof .t-c{color:var(--muted);border-color:var(--line)}
+#prof .rank{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+#prof .pr{display:grid;grid-template-columns:34px minmax(0,1.1fr) minmax(0,1fr) 54px;gap:14px;align-items:center;padding:14px 16px;background:var(--panel);border-top:1px solid var(--line);cursor:pointer;text-align:left;color:inherit;font:inherit;border-left:0;border-right:0;border-bottom:0;width:100%;appearance:none}
+#prof .pr:first-child{border-top:0}
+#prof .pr:hover{background:var(--panel2)}
+#prof .pos{font:700 18px var(--disp);color:var(--muted);text-align:center}
+#prof .pr.top .pos{color:var(--gold)}
+#prof .pn{font-weight:700;font-size:17px}
+#prof .pn small{font-weight:400;color:var(--muted);font-size:13px;margin-left:6px}
+#prof .why{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+#prof .chip{font-size:12.5px;padding:2px 8px;border-radius:999px;background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
+#prof .chip.hit{color:var(--text);border-color:color-mix(in srgb,var(--gold) 45%,transparent);background:color-mix(in srgb,var(--gold) 10%,var(--panel2))}
+#prof .bar{height:12px;background:var(--panel2);border-radius:4px;position:relative;overflow:hidden}
+#prof .bar i{position:absolute;inset:0 auto 0 0;background:var(--gold);border-radius:4px;transition:width .25s ease}
+#prof .score{font:600 16px var(--mono);text-align:right}
+#prof .detail{background:var(--panel2);border-top:1px solid var(--line);padding:14px 16px 16px 64px;display:flex;flex-direction:column;gap:8px}
+#prof .fact{display:grid;grid-template-columns:110px 1fr auto;gap:10px;align-items:baseline;font-size:14.5px}
+#prof .fact .k{color:var(--muted);font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+#prof .pick{display:flex;flex-wrap:wrap;gap:12px}
+#prof .pickcard{flex:1 1 260px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:6px}
+#prof .pickcard .k{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--gold)}
+#prof .pickcard .v{font:700 22px var(--disp)}
+#prof .pickcard p{margin:0;color:var(--muted);font-size:14.5px}
+#prof .group{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+#prof .slot{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px}
+#prof .slot label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+#prof select{appearance:none;background:var(--panel2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a39bb3'/%3E%3C/svg%3E") no-repeat right 10px center;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 28px 8px 10px;font:600 14px var(--body);width:100%}
+#prof .kit{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#prof .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+#prof .seg button{appearance:none;border:0;background:var(--panel);color:var(--muted);font:600 13px var(--body);padding:8px 12px;cursor:pointer}
+#prof .seg button[aria-pressed="true"]{background:var(--panel2);color:var(--text)}
+#prof .camp{display:flex;flex-direction:column;gap:6px}
+#prof .buff{display:flex;justify-content:space-between;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+#prof .buff.off{opacity:.45}
+#prof .buff b{font-weight:700}
+#prof .buff span{color:var(--muted);font-size:14px}
+#prof .goal{align-self:flex-start}
+#prof .goal button{font-size:14.5px;padding:10px 16px}
+#prof .goal button[aria-pressed="true"]{background:var(--gold);color:#1a1522}
+#prof .fit{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px;text-align:center;white-space:nowrap}
+#prof .fit.s{background:color-mix(in srgb,var(--up) 18%,transparent);color:var(--up)}
+#prof .fit.m{background:color-mix(in srgb,var(--gold) 16%,transparent);color:var(--gold)}
+#prof .fit.l{background:var(--panel2);color:var(--muted)}
+#prof .pr.g2{grid-template-columns:34px minmax(0,1fr) 110px}
+#prof .linkbtn{appearance:none;border:0;background:none;color:var(--gold);font:600 14px var(--body);text-decoration:underline;cursor:pointer;padding:0}
+#prof .note{font-size:13.5px;color:var(--muted)}
+#prof .soon{border:1px dashed var(--line);border-radius:14px;padding:18px;color:var(--muted)}
+#prof .soon b{color:var(--text)}
+#prof footer{color:var(--muted);font-size:13px;display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:16px}
+#prof footer a{color:var(--lilac)}
+@media (max-width:640px){#prof .pr{grid-template-columns:28px 1fr 48px}
+#prof .pr .bar{grid-column:2/-1;grid-row:2}
+#prof .detail{padding-left:16px}
+#prof .fact{grid-template-columns:1fr auto}
+#prof .fact .k{grid-column:1/-1}}
+@media (prefers-reduced-motion:reduce){#prof .bar i{transition:none}}
+.topnav{max-width:1080px;margin:0 auto;padding:18px 0 12px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px;border-bottom:1px solid var(--line)}
+.topnav .brand{font:700 16px 'Cinzel',Georgia,serif;letter-spacing:.04em;color:var(--text);margin-right:auto}
+#calcapp.profmode .wrap>*:not(header):not(.tabs){display:none!important}
+#calcapp.profmode .wrap{padding-bottom:0}
+#calcapp.profmode .fab,#calcapp.profmode .cta{display:none!important}
+#prof header{display:none}
+#prof .wrap{padding-top:22px}
+.topnav button{appearance:none;border:0;background:none;color:var(--muted);font:600 15px 'Source Sans 3',system-ui,sans-serif;padding:6px 2px;border-bottom:2px solid transparent;cursor:pointer}
+.topnav button:hover{color:var(--text)}
+.topnav button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--gold)}
+.topnav button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+</style>
+<nav class="topnav" aria-label="Site"><span class="brand">Forever Calculator</span></nav>
+<div id="calcapp">
+<div class="wrap">
+<header>
+ <div class="eyebrow">WoW Forever beta build 1.60.1.69977 vs Classic Era 1.15.9</div>
+ <h1>How hard do you hit in Forever?</h1>
+ <p class="lede">How the WoW Forever beta changes spell damage and healing compared with Classic. <b>Read the spell breakdown</b>, open the <b>spell calculator</b>, or pick your <b>professions</b>. Same rank, before talents, crit and buffs.</p>
+<button class="cta" id="cta">Open the calculator <span aria-hidden="true">→</span></button>
+</header>
+<div class="tabs" role="tablist"><button class="tab" role="tab" id="t-read" aria-selected="true">Spell breakdown</button><button class="tab" role="tab" id="t-calc" aria-selected="false">Spell calculator</button><button class="tab" role="tab" id="t-prof" aria-selected="false">Professions</button></div>
+<div class="v-read statement"><h2>Forever cut base damage so gear carries it.</h2><p>Mage and shadow priest spells need about 75 spell power to catch up with Classic. Warlock, shaman and balance druid need 250–700. Most heals need about 140 +healing.</p></div>
+<div class="v-read block"><h2>How to read it</h2><div class="method">
+<div class="card"><div class="k">Spell power to match Classic</div><div class="f">(Classic − Forever) ÷ coefficient</div><p>How much spell power a Forever character needs to hit as hard as a Classic character with none.</p></div>
+<div class="card"><div class="k">Forever at your spell power</div><div class="f">Forever + coefficient × SP</div><p>What you actually hit for. The tables show 300 and 500; the calculator takes any value.</p></div></div>
+<p class="example"><b>Example, Fireball rank 12:</b> Classic 754, Forever 543, coefficient 100% → <b>211 spell power</b> to match. At 500 spell power Forever hits for 1&#8239;043.</p></div>
+<div class="v-read block"><h2>Spell power needed to match Classic</h2><p class="sub2">Highest rank, compared to Classic with 0 spell power. Click a spell to open its class in the calculator.</p><div class="ov" id="ov"></div></div>
+<div class="v-read block"><h2>Class by class</h2><p class="sub2">Highest rank of each spell. Change is Forever vs Classic at 0 spell power.</p></div>
+<div class="v-read" id="chapters" style="display:flex;flex-direction:column;gap:28px"></div>
+<div class="v-calc block" id="calc"><p class="sub2">The bar below stays at the top while you scroll the spell list.</p></div>
+<div class="v-calc controls">
+ <div class="modes seg2" role="group" aria-label="Level range"><button id="m60" aria-pressed="true">Level 60 · datamined</button><button id="m20" aria-pressed="false">Level 1–20 · live beta</button></div>
+ <div class="classes" id="classes" role="group" aria-label="Class"></div>
+ <div class="stats">
+  <div class="stat" id="st-sp"><label for="sp">Spell power</label><div class="field"><button class="step" data-t="sp" data-d="-25" aria-label="Less spell power">−</button><input id="sp" type="number" inputmode="numeric" min="0" max="2000" step="1" value="100"><button class="step" data-t="sp" data-d="25" aria-label="More spell power">+</button></div></div>
+  <div class="stat" id="st-heal"><label for="heal">+Healing</label><div class="field"><button class="step" data-t="heal" data-d="-25" aria-label="Less healing">−</button><input id="heal" type="number" inputmode="numeric" min="0" max="3000" step="1" value="100"><button class="step" data-t="heal" data-d="25" aria-label="More healing">+</button></div></div>
+  <div class="stat" id="st-ap"><label for="ap">Attack power</label><div class="field"><button class="step" data-t="ap" data-d="-50" aria-label="Less attack power">−</button><input id="ap" type="number" inputmode="numeric" min="0" max="5000" step="1" value="100"><button class="step" data-t="ap" data-d="50" aria-label="More attack power">+</button></div></div>
+  <div class="seg" role="group" aria-label="Compare against">
+   <button id="cmp-base" aria-pressed="true">vs Classic, 0 SP</button><button id="cmp-same" aria-pressed="false">vs Classic, same SP</button>
+  </div>
+ </div>
+</div>
+<div class="v-calc summary" id="summary"></div>
+<div class="v-calc legend"><span><i class="lg-f"></i>Forever at your stats</span><span><i class="lg-c"></i><span id="lg-c">Classic base (0 SP)</span></span></div>
+<main class="v-calc" id="out"></main>
+<div class="v-read block"><h2>Fact check</h2><p class="sub2">All numbers checked against the sources on 23 Sep 2026.</p>
+<div class="cards">
+<div class="card"><h3>Base values match</h3><p>About 80 base values for mage, priest, warlock, druid and shaman match the ForeverChanges spellbooks.</p></div>
+<div class="card"><h3>Coefficients match</h3><p>All 28 checked against 60.tools, e.g. Arcane Missiles 143% vs 120%, Bane of Doom 400% vs 100%.</p></div>
+<div class="card"><h3>Physical changes confirmed</h3><p>Backstab +150 (was +225), Aimed Shot +166 (was +600), Raptor Strike +70 (was +140), Bloodthirst 35% AP + 48 (was 45%).</p></div>
+<div class="card"><h3>Players agree</h3><p>Blizzard forum testers measured ~715 SP for Chain Lightning to break even; the data says 699.</p></div>
+<div class="card warn"><h3>Not DPS</h3><p>Cast time, crit, mana, talents and rotation aren't included. A low number doesn't rank classes.</p></div>
+<div class="card warn"><h3>Beta data</h3><p>Build 69977. The beta started 17 September, so values can change before launch.</p></div>
+</div></div>
+<div class="block" id="changes"><h2>Data changes</h2><p class="sub2">Checked weekly against ForeverChanges and Wowhead. Newest first.</p><div class="log" id="log">
+<!--LOG-->
+<div><time>2026-09-23</time><span>Beta build 1.60.1.69977: no spell, talent or item changes, so all numbers stay the same.</span></div>
+<div><time>2026-09-23</time><span>Physical abilities hidden by default until their scaling is confirmed.</span></div>
+<div><time>2026-09-23</time><span>Added a Level 1–20 view with the highest rank trainable by level 20, marked unverified until checked against the beta.</span></div>
+<div><time>2026-09-23</time><span>Added spell power scaling for Shadowburn (42.9%), Conflagrate (42.9%), Frost Shock (38.6%) and Rain of Fire (4 × 8.3% per target). Physical abilities labeled as estimates.</span></div>
+<div><time>2026-09-23</time><span>First version. Beta build 1.60.1.69913 vs Classic Era 1.15.9.69722.</span></div>
+</div></div>
+<footer>
+ <div>Base values: <a href="https://foreverchanges.pro/" target="_blank" rel="noopener">ForeverChanges</a> spellbooks (beta build 69977). Coefficients: <a href="https://www.60.tools/downrank-calculator" target="_blank" rel="noopener">60.tools</a>. Checked 23 Sep 2026.</div>
+ <div>Physical abilities use a model: damage = weapon multiplier × (avg weapon + AP × speed ÷ 14) + bonus. Normalized speeds are the Classic ones and are not confirmed for Forever. Beta values can still change.</div>
+</footer>
+</div>
+
+</div>
+<div id="prof" hidden>
+<div class="wrap">
+<header>
+ <div class="eyebrow">WoW Forever beta build 1.60.1.69977</div>
+ <h1>Which profession should you pick?</h1>
+ <p class="lede">Pick your class and what you care about: leveling fast, gear at 60, gold, a plan for your whole group, or the camp buffs you get together. Based on what's been datamined from the beta. For gold, it shows where the steady demand is; real prices come after launch.</p>
+</header>
+
+<div class="block">
+ <div class="classes" id="p_classes" role="group" aria-label="Class"></div>
+ <div class="legend"><span><span class="tag t-d">Datamined</span> from the beta client</span><span><span class="tag t-r">Reported</span> by guide sites, not in client data</span><span><span class="tag t-u">Unclear</span> sources disagree</span><span><span class="tag t-c">Classic</span> how it worked in Classic</span></div>
+</div>
+
+<div class="goal seg" role="group" aria-label="Goal"><button data-g="lvl" aria-pressed="true">Leveling</button><button data-g="gear" aria-pressed="false">Gear at 60</button><button data-g="gold" aria-pressed="false">Gold</button><button data-g="team" aria-pressed="false">Group plan</button><button data-g="camp" aria-pressed="false">Camp buffs</button></div>
+<div class="g-team block">
+ <h2>Plan professions for your group</h2>
+ <p class="sub2">Add the classes in your group or guild. Each player gets two professions so the group covers what matters most: rested XP for everyone, raid flasks, enchants and disenchanting, armor for every armor type, and each crafter with a gatherer feeding it.</p>
+ <div class="group" id="p_team"></div>
+ <div class="camp" id="p_plan"></div>
+ <div class="pick" id="p_cover"></div>
+ <p class="note">Everyone should also take Cooking and First Aid; they don't use a profession slot. The plan fills the most useful roles first, so with a small group some roles stay open.</p>
+</div>
+<div class="g-gold block">
+ <h2>Where the steady income could be</h2>
+ <p class="sub2">No prices exist until launch, so this ranks by <b style="color:var(--text)">demand</b>: what the datamined recipes show people will need over and over. Things that get used up every raid or every week sell more reliably than gear someone buys once.</p>
+ <div class="rank" id="p_goldrank"></div>
+ <div class="soon"><b>Real prices after launch.</b> Once the auction house is live, this can show actual profit per hour and per craft.</div>
+</div>
+<div class="g-camp block">
+ <h2>Your group's camp</h2>
+ <p class="sub2">Each player near the campfire adds one camp object, and everyone gets the buffs for an hour. Pick what your group brings. One Camp Tent covers the whole group, so only one of you needs Leatherworking for the rested XP.</p>
+ <div class="kit"><span class="note">Campfire:</span><div class="seg" role="group" aria-label="Campfire size"><button data-k="3" aria-pressed="true">Basic · 3 objects</button><button data-k="5" aria-pressed="false">Journeyman · 5</button><button data-k="10" aria-pressed="false">Expert · 10</button></div></div>
+ <div class="group" id="p_group"></div>
+ <div class="camp" id="p_camp"></div>
+ <p class="note">Rested XP from one Camp Tent covers everyone, so only one player needs Leatherworking. Camp buffs don't stack with the matching class buff (Incense Candle and Arcane Intellect, Lute and Mark of the Wild, Fish Bowl and Blessing of Kings, and so on), so skip objects your group's classes already cover. The skill 140 and 300 versions keep the same buff and add a utility, like a Repair Bot, a Greenhouse or a Molten Foundry.</p>
+</div>
+<div class="g-lvl pick" id="p_pick"></div>
+
+<div class="g-gear pick" id="p_pick2"></div>
+<div class="g-gear block">
+ <h2>Primary professions at level 60</h2>
+ <p class="sub2">Fit for your class: does it craft your armor or weapons, raid consumables, and which bonuses only the profession gets. Click a row for the facts behind it.</p>
+ <div class="rank" id="p_rank2"></div>
+</div>
+<div class="g-gear block">
+ <h2>Best pairs at 60</h2>
+ <p class="sub2">Both scores added, +2 when one profession supplies the other. Pairs with the same score share a place.</p>
+ <div class="camp" id="p_pairs2"></div>
+</div>
+<div class="g-gear block">
+ <h2>Crafted tier sets</h2>
+ <p class="sub2">Datamined: each class set has six pieces. <b style="color:var(--text)">Legs, hands, shoulders and feet are crafted</b> (skill 320, item level 61, level 60); head and chest aren't craftable. Legs cost 5 Malleable Essence of Nature, the other pieces 3. That essence comes from disenchanting raid loot. <span class="tag t-d">Datamined</span></p>
+ <div class="camp" id="p_tiers"></div>
+ <p class="note">Piece stats aren't shown in the client data yet. Tailoring makes cloth sets, Leatherworking makes leather and mail sets, Blacksmithing makes plate sets. Reagents: Tailoring uses Mooncloth, Bolt of Runecloth and Rune Thread; Leatherworking uses Cured Rugged Hide, Fel Leather and Rune Thread; Blacksmithing uses Arcanite Bar, Heavy Thorium Bar and Elemental Flux.</p>
+</div>
+<div class="g-lvl block">
+ <h2>Primary professions, ranked for leveling</h2>
+ <p class="sub2">Points: rested XP +2 (only one player in a group needs it) · camp buff your class uses +2 · passive bonus that helps while leveling +1 · gathering pays while you level +1 · crafts your armor +1. Click a row for the facts behind it.</p>
+ <div class="rank" id="p_rank"></div>
+</div>
+
+<div class="g-lvl block">
+ <h2>Best pairs for leveling</h2>
+ <p class="sub2">Both scores added, +2 when one profession supplies the other. Pairs with the same score share a place.</p>
+ <div class="camp" id="p_pairs"></div>
+</div>
+<div class="g-lvl g-gear block">
+ <h2>Secondary professions</h2>
+ <p class="sub2">Everyone can take all three, so they aren't ranked.</p>
+ <div class="rank" id="p_sec"></div>
+</div>
+
+
+
+
+
+
+<footer>
+ <div>Sources: <a href="https://foreverchanges.pro/professions" target="_blank" rel="noopener">ForeverChanges</a> · <a href="https://wowforevertools.com/professions" target="_blank" rel="noopener">WoW Forever Tools</a> (datamined, build 1.60.1) · <a href="https://www.zockify.com/forever/professions/" target="_blank" rel="noopener">Zockify</a> · <a href="https://www.icy-veins.com/wow-forever/camping" target="_blank" rel="noopener">Icy Veins</a> · tier sets: <a href="https://daybreakforever.com/" target="_blank" rel="noopener">Daybreak Forever</a> (build 1.60.1.69977). Checked 23 Sep 2026.</div>
+ <div>Scores are a starting point based on what's known now, not a verdict. Not affiliated with Blizzard Entertainment.</div>
+</footer>
+</div>
+</div>
+<script>const INIT_HASH=location.hash;</script>
+<script>(()=>{const ROOT=document.getElementById('calcapp');
+
+const DATA60=[{"c":"Mage","n":"Fireball","r":12,"s":"Hit + 8 s DoT","k":"sp","cb":754,"fb":543,"fc":1,"cc":1,"note":""},{"c":"Mage","n":"Frostbolt","r":11,"s":"Single hit","k":"sp","cb":535,"fb":475,"fc":0.814,"cc":0.814,"note":""},{"c":"Mage","n":"Arcane Missiles","r":8,"s":"5 missiles","k":"sp","cb":1150,"fb":1045,"fc":1.43,"cc":1.2,"note":""},{"c":"Mage","n":"Arcane Blast","r":5,"s":"Single hit","k":"sp","cb":null,"fb":394,"fc":0.714,"cc":null,"note":"Stacks and rotation not included."},{"c":"Mage","n":"Fire Blast","r":7,"s":"Single hit","k":"sp","cb":470,"fb":438,"fc":0.429,"cc":0.429,"note":""},{"c":"Mage","n":"Scorch","r":7,"s":"Single hit","k":"sp","cb":254,"fb":178,"fc":0.429,"cc":null,"note":"Classic coefficient not verified."},{"c":"Mage","n":"Pyroblast","r":8,"s":"Hit + 12 s DoT","k":"sp","cb":1071,"fb":795,"fc":1.6,"cc":null,"note":""},{"c":"Mage","n":"Frostfire Bolt","r":3,"s":"Hit + 9 s DoT","k":"sp","cb":null,"fb":349,"fc":0.814,"cc":null,"note":"81.4% covers the whole effect."},{"c":"Mage","n":"Ice Lance","r":6,"s":"Unfrozen target","k":"sp","cb":null,"fb":145,"fc":null,"cc":null,"note":"No spell power scaling listed on Wowhead Forever yet."},{"c":"Mage","n":"Arcane Explosion","r":6,"s":"Per target","k":"sp","cb":253,"fb":242,"fc":0.143,"cc":0.143,"note":""},{"c":"Mage","n":"Flamestrike","r":6,"s":"Hit + 8 s ground DoT","k":"sp","cb":757,"fb":749,"fc":0.285,"cc":null,"note":"15.7% direct + 4 × 3.2% DoT. 60.tools lists 23.7% for Classic."},{"c":"Mage","n":"Blizzard","r":6,"s":"8 s channel, per target","k":"sp","cb":1192,"fb":1168,"fc":0.336,"cc":null,"note":"8 ticks × 4.2%."},{"c":"Mage","n":"Cone of Cold","r":5,"s":"Per target","k":"sp","cb":350,"fb":340,"fc":0.129,"cc":null,"note":""},{"c":"Mage","n":"Blast Wave","r":5,"s":"Per target","k":"sp","cb":503,"fb":493,"fc":0.129,"cc":null,"note":"Coefficient taken from rank 1."},{"c":"Mage","n":"Frost Nova","r":4,"s":"Per target","k":"sp","cb":75,"fb":73,"fc":0.029,"cc":0.029,"note":""},{"c":"Priest","n":"Shadow Word: Pain","r":8,"s":"18 s DoT","k":"sp","cb":852,"fb":762,"fc":1.2,"cc":1.002,"note":""},{"c":"Priest","n":"Mind Blast","r":9,"s":"Single hit","k":"sp","cb":517,"fb":485,"fc":0.429,"cc":0.429,"note":""},{"c":"Priest","n":"Mind Flay","r":6,"s":"3 s channel","k":"sp","cb":426,"fb":390,"fc":0.501,"cc":0.45,"note":""},{"c":"Priest","n":"Devouring Plague","r":6,"s":"24 s DoT","k":"sp","cb":904,"fb":848,"fc":0.8,"cc":0.504,"note":""},{"c":"Priest","n":"Shadow Word: Death","r":4,"s":"Single hit","k":"sp","cb":null,"fb":448,"fc":0.429,"cc":null,"note":"Self-damage not included."},{"c":"Priest","n":"Smite","r":8,"s":"Single hit","k":"sp","cb":393,"fb":170,"fc":0.714,"cc":0.714,"note":""},{"c":"Priest","n":"Holy Fire","r":8,"s":"Hit + 10 s DoT","k":"sp","cb":547,"fb":283,"fc":1,"cc":null,"note":""},{"c":"Priest","n":"Holy Nova","r":6,"s":"Damage per target","k":"sp","cb":195,"fb":187,"fc":0.107,"cc":null,"note":"Healing listed separately."},{"c":"Priest","n":"Penance","r":4,"s":"3 bolts, damage","k":"sp","cb":null,"fb":393,"fc":0.855,"cc":null,"note":"3 × 28.5%."},{"c":"Warlock","n":"Shadow Bolt","r":10,"s":"Single hit","k":"sp","cb":510,"fb":268,"fc":0.857,"cc":0.857,"note":""},{"c":"Warlock","n":"Corruption","r":7,"s":"18 s DoT","k":"sp","cb":822,"fb":438,"fc":1.2,"cc":1.002,"note":""},{"c":"Warlock","n":"Immolate","r":8,"s":"Hit + 15 s DoT","k":"sp","cb":789,"fb":433,"fc":0.85,"cc":0.85,"note":""},{"c":"Warlock","n":"Bane of Agony","r":6,"s":"24 s DoT","k":"sp","cb":1044,"fb":552,"fc":1.596,"cc":0.996,"note":"Classic: Curse of Agony."},{"c":"Warlock","n":"Bane of Doom","r":1,"s":"After 60 s","k":"sp","cb":3200,"fb":1742,"fc":4,"cc":1,"note":"Classic: Curse of Doom."},{"c":"Warlock","n":"Incinerate","r":3,"s":"Without Immolate","k":"sp","cb":null,"fb":217,"fc":0.714,"cc":null,"note":"+25% with Immolate not included."},{"c":"Warlock","n":"Wrack","r":1,"s":"6 s channel","k":"sp","cb":null,"fb":216,"fc":0.858,"cc":null,"note":"Boost to other DoTs not included."},{"c":"Warlock","n":"Searing Pain","r":6,"s":"Single hit","k":"sp","cb":222,"fb":114,"fc":0.429,"cc":0.429,"note":""},{"c":"Warlock","n":"Soul Fire","r":2,"s":"Single hit","k":"sp","cb":792,"fb":431,"fc":1,"cc":null,"note":""},{"c":"Warlock","n":"Siphon Life","r":4,"s":"30 s DoT","k":"sp","cb":450,"fb":410,"fc":0.5,"cc":null,"note":""},{"c":"Warlock","n":"Death Coil","r":3,"s":"Single hit","k":"sp","cb":470,"fb":454,"fc":0.214,"cc":null,"note":""},{"c":"Warlock","n":"Rain of Fire","r":4,"s":"8 s channel, per target","k":"sp","cb":904,"fb":880,"fc":0.332,"cc":null,"note":"Per target, 4 ticks × 8.3% (Wowhead Forever)."},{"c":"Warlock","n":"Hellfire","r":3,"s":"15 s channel, per target","k":"sp","cb":3120,"fb":3090,"fc":0.33,"cc":null,"note":"Self-damage not included."},{"c":"Warlock","n":"Shadowburn","r":6,"s":"Single hit","k":"sp","cb":476,"fb":266,"fc":0.429,"cc":0.429,"note":"Coefficient from Wowhead Forever."},{"c":"Warlock","n":"Conflagrate","r":4,"s":"Single hit","k":"sp","cb":502,"fb":194,"fc":0.429,"cc":0.429,"note":"Consumes Immolate. Coefficient from Wowhead Forever."},{"c":"Druid","n":"Wrath","r":8,"s":"Single hit","k":"sp","cb":250,"fb":61,"fc":0.571,"cc":0.571,"note":""},{"c":"Druid","n":"Moonfire","r":10,"s":"Hit + 12 s DoT","k":"sp","cb":589,"fb":375,"fc":0.67,"cc":0.67,"note":""},{"c":"Druid","n":"Starfire","r":7,"s":"Single hit","k":"sp","cb":540,"fb":381,"fc":1,"cc":null,"note":""},{"c":"Druid","n":"Insect Swarm","r":5,"s":"12 s DoT","k":"sp","cb":324,"fb":186,"fc":0.948,"cc":null,"note":""},{"c":"Druid","n":"Hurricane","r":3,"s":"10 s channel, per target","k":"sp","cb":1340,"fb":1320,"fc":0.3,"cc":null,"note":"10 × 3%."},{"c":"Shaman","n":"Lightning Bolt","r":10,"s":"Single hit","k":"sp","cb":443,"fb":196,"fc":0.714,"cc":0.857,"note":""},{"c":"Shaman","n":"Chain Lightning","r":4,"s":"First target","k":"sp","cb":522,"fb":123,"fc":0.571,"cc":0.714,"note":""},{"c":"Shaman","n":"Lava Burst","r":3,"s":"Without Flame Shock","k":"sp","cb":null,"fb":220,"fc":0.714,"cc":null,"note":"+20% with Flame Shock not included."},{"c":"Shaman","n":"Earth Shock","r":7,"s":"Single hit","k":"sp","cb":531,"fb":301,"fc":0.386,"cc":0.386,"note":""},{"c":"Shaman","n":"Flame Shock","r":6,"s":"Hit + 12 s DoT","k":"sp","cb":612,"fb":342,"fc":0.614,"cc":0.614,"note":""},{"c":"Shaman","n":"Frost Shock","r":4,"s":"Single hit","k":"sp","cb":500,"fb":283,"fc":0.386,"cc":0.386,"note":"Coefficient from Wowhead Forever."},{"c":"Shaman","n":"Fire Nova","r":5,"s":"Per target","k":"sp","cb":419,"fb":419,"fc":null,"cc":null,"note":"Classic: Fire Nova Totem. Mechanic changed."},{"c":"Shaman","n":"Magma Totem","r":4,"s":"20 s, per target","k":"sp","cb":750,"fb":730,"fc":null,"cc":null,"note":"10 ticks. Totem scaling not verified."},{"c":"Shaman","n":"Searing Totem","r":6,"s":"One bolt","k":"sp","cb":47,"fb":47,"fc":null,"cc":null,"note":"Totem scaling not verified."},{"c":"Paladin","n":"Holy Shock","r":3,"s":"Damage part","k":"sp","cb":380,"fb":258,"fc":0.429,"cc":null,"note":"Healing listed separately."},{"c":"Paladin","n":"Hammer of Wrath","r":3,"s":"Single hit","k":"sp","cb":530,"fb":498,"fc":0.429,"cc":null,"note":"Execute range only."},{"c":"Paladin","n":"Exorcism","r":6,"s":"Single hit","k":"sp","cb":null,"fb":502,"fc":0.429,"cc":null,"note":"Classic base not verified."},{"c":"Paladin","n":"Consecration","r":5,"s":"Per target, full effect","k":"sp","cb":null,"fb":null,"fc":null,"cc":null,"note":"Base values not verified."},{"c":"Priest","n":"Greater Heal","r":5,"s":"Single target","k":"heal","cb":2080,"fb":1960,"fc":0.857,"cc":0.857,"note":""},{"c":"Priest","n":"Flash Heal","r":7,"s":"Single target","k":"heal","cb":885,"fb":825,"fc":0.429,"cc":null,"note":""},{"c":"Priest","n":"Heal","r":4,"s":"Single target","k":"heal","cb":758,"fb":651,"fc":0.857,"cc":0.857,"note":"Lower-level heal."},{"c":"Priest","n":"Renew","r":10,"s":"15 s HoT","k":"heal","cb":970,"fb":830,"fc":1,"cc":1,"note":""},{"c":"Priest","n":"Prayer of Healing","r":5,"s":"Per party member","k":"heal","cb":1070,"fb":649,"fc":0.286,"cc":null,"note":""},{"c":"Priest","n":"Power Word: Shield","r":10,"s":"Absorb","k":"heal","cb":942,"fb":928,"fc":0.1,"cc":0.1,"note":"Absorb, not actual healing."},{"c":"Priest","n":"Penance","r":4,"s":"3 bolts, healing","k":"heal","cb":null,"fb":2019,"fc":0.855,"cc":null,"note":"3 × 673, 3 × 28.5%."},{"c":"Priest","n":"Binding Heal","r":6,"s":"Per recipient","k":"heal","cb":null,"fb":825,"fc":0.429,"cc":null,"note":"Heals target and caster."},{"c":"Priest","n":"Divine Grace","r":7,"s":"Single target","k":"heal","cb":null,"fb":1383,"fc":0.429,"cc":null,"note":"Depends on target health."},{"c":"Priest","n":"Prayer of Mending","r":3,"s":"Per bounce","k":"heal","cb":null,"fb":413,"fc":null,"cc":null,"note":"Coefficient not verified yet."},{"c":"Priest","n":"Holy Nova","r":6,"s":"Healing per target","k":"heal","cb":326,"fb":311,"fc":null,"cc":null,"note":"Healing coefficient not verified yet."},{"c":"Druid","n":"Healing Touch","r":11,"s":"Single target","k":"heal","cb":2472,"fb":2332,"fc":1,"cc":1,"note":""},{"c":"Druid","n":"Rejuvenation","r":11,"s":"12 s HoT","k":"heal","cb":888,"fb":776,"fc":0.8,"cc":0.8,"note":""},{"c":"Druid","n":"Regrowth","r":9,"s":"Direct + 21 s HoT","k":"heal","cb":2125,"fb":2015,"fc":0.783,"cc":0.783,"note":""},{"c":"Druid","n":"Tranquility","r":4,"s":"10 s channel, per target","k":"heal","cb":1470,"fb":1425,"fc":0.335,"cc":null,"note":""},{"c":"Druid","n":"Wild Growth","r":3,"s":"7 s HoT, per target","k":"heal","cb":null,"fb":679,"fc":0.231,"cc":null,"note":"Group size and overheal not included."},{"c":"Druid","n":"Swiftmend","r":1,"s":"Depends on active HoT","k":"heal","cb":null,"fb":null,"fc":null,"cc":null,"note":"Depends on the HoT it consumes."},{"c":"Paladin","n":"Holy Light","r":9,"s":"Single target","k":"heal","cb":1680,"fb":1580,"fc":0.714,"cc":0.714,"note":""},{"c":"Paladin","n":"Flash of Light","r":6,"s":"Single target","k":"heal","cb":363,"fb":303,"fc":0.429,"cc":null,"note":""},{"c":"Paladin","n":"Holy Shock","r":3,"s":"Healing part","k":"heal","cb":380,"fb":230,"fc":0.429,"cc":null,"note":"Separate from the damage part."},{"c":"Paladin","n":"Light's Vigil","r":3,"s":"Per recipient on proc","k":"heal","cb":null,"fb":704,"fc":0.143,"cc":null,"note":"Triggered by Holy Shock."},{"c":"Shaman","n":"Healing Wave","r":10,"s":"Single target","k":"heal","cb":1735,"fb":1615,"fc":0.857,"cc":0.857,"note":""},{"c":"Shaman","n":"Lesser Healing Wave","r":6,"s":"Single target","k":"heal","cb":880,"fb":820,"fc":0.429,"cc":null,"note":""},{"c":"Shaman","n":"Chain Heal","r":3,"s":"First target","k":"heal","cb":590,"fb":490,"fc":0.714,"cc":null,"note":"Extra jumps not included."},{"c":"Shaman","n":"Riptide","r":3,"s":"Direct + 15 s HoT","k":"heal","cb":null,"fb":1646,"fc":0.714,"cc":null,"note":"Chain Heal bonus not included."},{"c":"Shaman","n":"Healing Stream Totem","r":5,"s":"One tick, per target","k":"heal","cb":14,"fb":11,"fc":null,"cc":null,"note":"Every 2 s. Totem scaling not verified."},{"c":"Alla","n":"Auto attack","r":"–","k":"ap","spd":null,"mc":1,"mf":1,"bc":0,"bf":0,"ac":0,"af":0,"note":"Uses weapon speed."},{"c":"Warrior","n":"Heroic Strike","r":9,"k":"ap","spd":null,"mc":1,"mf":1,"bc":157,"bf":157,"ac":0,"af":0,"note":"Next swing, weapon speed."},{"c":"Warrior","n":"Mortal Strike","r":4,"k":"ap","spd":3.3,"mc":1,"mf":1,"bc":160,"bf":160,"ac":0,"af":0,"note":"Normalized 2H (3.3 s)."},{"c":"Warrior","n":"Bloodthirst","r":4,"k":"ap","spd":0,"mc":0,"mf":0,"bc":0,"bf":48,"ac":0.45,"af":0.35,"note":"Classic 45% AP; Forever 35% AP + 48."},{"c":"Warrior","n":"Whirlwind","r":"–","k":"ap","spd":3.3,"mc":1,"mf":1,"bc":0,"bf":0,"ac":0,"af":0,"note":"Per target, normalized 2H."},{"c":"Warrior","n":"Overpower","r":4,"k":"ap","spd":3.3,"mc":1,"mf":1,"bc":35,"bf":35,"ac":0,"af":0,"note":"After a dodge, normalized 2H."},{"c":"Warrior","n":"Cleave","r":5,"k":"ap","spd":null,"mc":1,"mf":1,"bc":50,"bf":50,"ac":0,"af":0,"note":"Per target, next swing."},{"c":"Rogue","n":"Sinister Strike","r":8,"k":"ap","spd":2.4,"mc":1,"mf":1,"bc":68,"bf":68,"ac":0,"af":0,"note":"Normalized 1H (2.4 s)."},{"c":"Rogue","n":"Backstab","r":9,"k":"ap","spd":1.7,"mc":1.5,"mf":1.5,"bc":225,"bf":150,"ac":0,"af":0,"note":"Dagger (1.7 s)."},{"c":"Rogue","n":"Ambush","r":6,"k":"ap","spd":1.7,"mc":2.5,"mf":2.5,"bc":290,"bf":290,"ac":0,"af":0,"note":"Dagger, from stealth."},{"c":"Hunter","n":"Aimed Shot","r":6,"k":"ap","spd":2.8,"mc":1,"mf":1,"bc":600,"bf":166,"ac":0,"af":0,"note":"Ranged AP, normalized 2.8 s. Ammo not included."},{"c":"Hunter","n":"Raptor Strike","r":8,"k":"ap","spd":null,"mc":1,"mf":1,"bc":140,"bf":70,"ac":0,"af":0,"note":"Melee AP, weapon speed."},{"c":"Druid","n":"Claw","r":5,"k":"ap","spd":1,"mc":1,"mf":1.1,"bc":115,"bf":115,"ac":0,"af":0,"note":"Cat form: weapon = form damage."},{"c":"Druid","n":"Shred","r":5,"k":"ap","spd":1,"mc":2.25,"mf":1.55,"bc":180,"bf":180,"ac":0,"af":0,"note":"Cat form: weapon = form damage."},{"c":"Shaman","n":"Stormstrike","r":"–","k":"ap","spd":null,"mc":1,"mf":1,"bc":0,"bf":0,"ac":0,"af":0,"note":"Nature bonus after the hit not included."}];
+const DATA20=[{"c":"Mage","n":"Fireball","r":4,"L":18,"k":"sp","s":"Hit + 8 s DoT","fb":90.5,"cb":117.5,"fc":0.857,"cc":0.7927,"note":""},{"c":"Mage","n":"Frostbolt","r":4,"L":20,"k":"sp","s":"Single hit","fb":64.5,"cb":78,"fc":0.706,"cc":0.706,"note":""},{"c":"Mage","n":"Arcane Missiles","r":2,"L":16,"k":"sp","s":"4 s channel","fb":132,"cb":152,"fc":1.144,"cc":0.816,"note":""},{"c":"Mage","n":"Fire Blast","r":2,"L":14,"k":"sp","s":"Single hit","fb":63,"cb":69,"fc":0.429,"cc":0.3325,"note":""},{"c":"Mage","n":"Arcane Explosion","r":1,"L":14,"k":"sp","s":"Per target","fb":34,"cb":36,"fc":0.143,"cc":0.1108,"note":""},{"c":"Mage","n":"Frost Nova","r":1,"L":10,"k":"sp","s":"Per target","fb":22.5,"cb":20,"fc":0.029,"cc":0.0181,"note":""},{"c":"Mage","n":"Flamestrike","r":1,"L":16,"k":"sp","s":"Hit + 8 s DoT, per target","fb":107,"cb":111,"fc":0.285,"cc":0.2014,"note":""},{"c":"Priest","n":"Smite","r":3,"L":14,"k":"sp","s":"Single hit","fb":50,"cb":62.5,"fc":0.714,"cc":0.5534,"note":""},{"c":"Priest","n":"Shadow Word: Pain","r":2,"L":10,"k":"sp","s":"18 s DoT","fb":60,"cb":66,"fc":1.2,"cc":0.6262,"note":""},{"c":"Priest","n":"Mind Blast","r":2,"L":16,"k":"sp","s":"Single hit","fb":72.5,"cb":79.5,"fc":0.429,"cc":0.3646,"note":""},{"c":"Priest","n":"Holy Fire","r":1,"L":20,"k":"sp","s":"Hit + 10 s DoT","fb":83,"cb":124,"fc":1.0,"cc":null,"note":""},{"c":"Priest","n":"Lesser Heal","r":3,"L":10,"k":"heal","s":"Single target","fb":149,"cb":154,"fc":0.714,"cc":0.4462,"note":""},{"c":"Priest","n":"Renew","r":1,"L":8,"k":"heal","s":"15 s HoT","fb":45,"cb":45,"fc":1.0,"cc":0.55,"note":""},{"c":"Priest","n":"Flash Heal","r":1,"L":20,"k":"heal","s":"Single target","fb":203.5,"cb":224.5,"fc":0.429,"cc":0.429,"note":""},{"c":"Priest","n":"Power Word: Shield","r":1,"L":6,"k":"heal","s":"Absorb","fb":48,"cb":48,"fc":0.1,"cc":0.0475,"note":""},{"c":"Warlock","n":"Shadow Bolt","r":4,"L":20,"k":"sp","s":"Single hit","fb":60.5,"cb":98,"fc":0.857,"cc":0.857,"note":""},{"c":"Warlock","n":"Immolate","r":3,"L":20,"k":"sp","s":"Hit + 15 s DoT","fb":98,"cb":143,"fc":0.85,"cc":0.85,"note":""},{"c":"Warlock","n":"Corruption","r":2,"L":14,"k":"sp","s":"15 s DoT","fb":65,"cb":90,"fc":1.0,"cc":0.6471,"note":""},{"c":"Warlock","n":"Bane of Agony","r":1,"L":8,"k":"sp","s":"24 s DoT \u00b7 Classic: Curse of Agony","fb":72,"cb":84,"fc":1.596,"cc":0.5478,"note":""},{"c":"Warlock","n":"Drain Soul","r":1,"L":10,"k":"sp","s":"15 s channel","fb":85,"cb":55,"fc":0.5,"cc":0.3125,"note":""},{"c":"Warlock","n":"Drain Life","r":1,"L":14,"k":"sp","s":"5 s channel","fb":50,"cb":50,"fc":0.5,"cc":0.3875,"note":""},{"c":"Warlock","n":"Searing Pain","r":1,"L":18,"k":"sp","s":"Single hit","fb":26.5,"cb":42.5,"fc":0.429,"cc":0.3968,"note":""},{"c":"Druid","n":"Wrath","r":2,"L":6,"k":"sp","s":"Single hit","fb":17.5,"cb":30.5,"fc":0.486,"cc":0.2308,"note":""},{"c":"Druid","n":"Moonfire","r":2,"L":10,"k":"sp","s":"Hit + 12 s DoT","fb":41,"cb":51,"fc":0.54,"cc":0.3375,"note":""},{"c":"Druid","n":"Starfire","r":1,"L":20,"k":"sp","s":"Single hit","fb":87.5,"cb":105,"fc":1.0,"cc":1.0,"note":""},{"c":"Druid","n":"Healing Touch","r":4,"L":20,"k":"heal","s":"Single target","fb":375.5,"cb":417.5,"fc":0.857,"cc":0.857,"note":""},{"c":"Druid","n":"Rejuvenation","r":2,"L":10,"k":"heal","s":"12 s HoT","fb":48,"cb":56,"fc":0.8,"cc":0.5,"note":""},{"c":"Druid","n":"Regrowth","r":1,"L":12,"k":"heal","s":"Direct + 21 s HoT","fb":187,"cb":198,"fc":0.783,"cc":0.5481,"note":""},{"c":"Shaman","n":"Lightning Bolt","r":4,"L":20,"k":"sp","s":"Single hit","fb":53,"cb":94,"fc":0.714,"cc":0.857,"note":""},{"c":"Shaman","n":"Earth Shock","r":3,"L":14,"k":"sp","s":"Single hit","fb":53.5,"cb":67,"fc":0.386,"cc":0.2992,"note":""},{"c":"Shaman","n":"Flame Shock","r":2,"L":18,"k":"sp","s":"Hit + 12 s DoT","fb":70,"cb":99,"fc":0.614,"cc":0.568,"note":""},{"c":"Shaman","n":"Frost Shock","r":1,"L":20,"k":"sp","s":"Single hit","fb":70.5,"cb":98,"fc":0.386,"cc":0.386,"note":""},{"c":"Shaman","n":"Healing Wave","r":3,"L":12,"k":"heal","s":"Single target","fb":138.5,"cb":149.5,"fc":0.714,"cc":0.4998,"note":""},{"c":"Shaman","n":"Lesser Healing Wave","r":1,"L":20,"k":"heal","s":"Single target","fb":161.5,"cb":182.5,"fc":0.429,"cc":0.429,"note":""},{"c":"Paladin","n":"Holy Light","r":2,"L":6,"k":"heal","s":"Single target","fb":88.5,"cb":88.5,"fc":0.714,"cc":0.3391,"note":""},{"c":"Paladin","n":"Flash of Light","r":1,"L":20,"k":"heal","s":"Single target","fb":51,"cb":72,"fc":0.429,"cc":0.429,"note":""}];
+let DATA=DATA60;
+const COLORS={Mage:'#3FC7EB',Priest:'#F0EEE8',Warlock:'#8788EE',Druid:'#FF7C0A',Shaman:'#2F8BFF',Paladin:'#F48CBA',Warrior:'#C69B6D',Rogue:'#FFF468',Hunter:'#AAD372'};
+const ORDER=['Mage','Priest','Warlock','Druid','Shaman','Paladin','Warrior','Rogue','Hunter'];
+const S={tab:'read',phys:false,mode:'60',cls:'Mage',sp:100,heal:100,ap:100,wmin:100,wmax:150,wspd:2.5,cmp:'base'};
+try{const saved=JSON.parse(localStorage.getItem('fsp')||'null');if(saved)Object.assign(S,saved)}catch(e){}
+const h=INIT_HASH.slice(1);if(ORDER.includes(h))S.cls=h;
+const save=()=>{try{localStorage.setItem('fsp',JSON.stringify(S))}catch(e){}};
+const fmt=n=>Math.round(n).toLocaleString('en-US').replace(/,/g,'\u202f');
+const $=id=>document.getElementById(id);
+
+const cl=$('classes');
+ORDER.forEach(c=>{const b=document.createElement('button');b.className='cls';b.textContent=c;b.style.setProperty('--cc',COLORS[c]);b.onclick=()=>{S.cls=c;render()};b.dataset.c=c;cl.appendChild(b)});
+['sp','heal','ap'].forEach(k=>{const i=$(k);i.value=S[k];i.addEventListener('input',()=>{S[k]=Math.max(0,+i.value||0);render(false)})});
+ROOT.querySelectorAll('.step').forEach(b=>b.onclick=()=>{const k=b.dataset.t;S[k]=Math.max(0,(S[k]||0)+ +b.dataset.d);$(k).value=S[k];render(false)});
+const setStats=v=>{['sp','heal','ap'].forEach(k=>{S[k]=v;$(k).value=v})};
+$('m60').onclick=()=>{if(S.mode!=='60'){S.mode='60';setStats(100)}render(false)};$('m20').onclick=()=>{if(S.mode!=='20'){S.mode='20';setStats(0)}render(false)};
+$('cmp-base').onclick=()=>{S.cmp='base';render(false)};$('cmp-same').onclick=()=>{S.cmp='same';render(false)};
+
+function calc(r){
+ if(r.k==='ap'){
+  const avg=(S.wmin+S.wmax)/2, spd=r.spd==null?S.wspd:r.spd, ap=S.ap;
+  const f=a=>r.mf*(avg+a*spd/14)+r.bf+r.af*a, c=a=>r.mc*(avg+a*spd/14)+r.bc+r.ac*a;
+  const slope=r.mf*spd/14+r.af;
+  const target=S.cmp==='base'?c(0):c(ap);
+  return {you:f(ap),cref:target,cbase:c(0),stat:ap,unit:'AP',need:slope>0?Math.max(0,(target-f(0))/slope):null,ok:true};
+ }
+ const stat=r.k==='heal'?S.heal:S.sp, unit=r.k==='heal'?'+healing':'SP';
+ if(r.fb==null||r.fc==null) return {ok:false,stat,unit};
+ const you=r.fb+r.fc*stat;
+ if(r.cb==null) return {ok:true,you,cref:null,stat,unit,isNew:true};
+ let cref=r.cb; if(S.cmp==='same'){ if(r.cc==null) cref=null; else cref=r.cb+r.cc*stat; }
+ return {ok:true,you,cref,stat,unit,need:cref==null?null:Math.max(0,(cref-r.fb)/r.fc)};
+}
+
+function row(r){
+ const x=calc(r);
+ const nm=`<div class="nm"><div class="name">${r.n}${r.r&&r.r!=='–'?`<small>r${r.r}</small>`:''}${x.isNew?'<span class="new">New</span>':''}${r.L?'<span class="uv">Unverified</span>':''}</div><div class="sub">${[r.L?'Learned at level '+r.L:'',r.s,r.note].filter(Boolean).join(' · ')}</div></div>`;
+ if(!x.ok) return `<div class="row">${nm}<div class="bar na">Forever coefficient not verified yet</div><div class="num muted">${r.fb!=null?fmt(r.fb):'–'}<span class="lbl">Forever base</span></div><div class="num muted">${r.cb!=null?fmt(r.cb):'–'}<span class="lbl">Classic</span></div><div class="need"></div></div>`;
+ const mx=Math.max(x.you,x.cref||0)*1.12||1;
+ const bar=`<div class="bar"><div class="track" role="img" aria-label="Forever ${fmt(x.you)}${x.cref!=null?', Classic '+fmt(x.cref):''}"><div class="fill" style="width:${x.you/mx*100}%"></div>${x.cref!=null?`<div class="tick" style="left:${x.cref/mx*100}%"></div>`:''}</div></div>`;
+ let need='';
+ if(x.cref==null) need=x.isNew?'<span class="sub">No Classic version</span>':'<span class="sub">Classic coefficient not verified</span>';
+ else if(x.you>=x.cref-0.5) need=`<span class="pill up">+${fmt((x.you/x.cref-1)*100)}% vs Classic</span><div class="sub">matched at ${fmt(x.need)} ${x.unit}</div>`;
+ else need=`<span class="pill down">${fmt((x.you/x.cref-1)*100)}%</span><div class="sub">${fmt(x.need-x.stat)} more ${x.unit} (${fmt(x.need)})</div>`;
+ return `<div class="row">${nm}${bar}<div class="num">${fmt(x.you)}<span class="lbl">Forever</span></div><div class="num muted">${x.cref!=null?fmt(x.cref):'–'}<span class="lbl">Classic</span></div><div class="need">${need}</div></div>`;
+}
+
+function render(scroll=true){
+ DATA=S.mode==='20'?DATA20:DATA60;
+ $('m60').setAttribute('aria-pressed',S.mode!=='20');$('m20').setAttribute('aria-pressed',S.mode==='20');
+ ROOT.querySelectorAll('.cls').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===S.cls));
+ $('cmp-base').setAttribute('aria-pressed',S.cmp==='base');$('cmp-same').setAttribute('aria-pressed',S.cmp==='same');
+ $('lg-c').textContent=S.cmp==='base'?'Classic base (0 SP)':'Classic with the same stats';
+ const rows=DATA.filter(r=>r.c===S.cls||(r.c==='Alla'&&['Warrior','Rogue','Hunter','Druid','Shaman','Paladin'].includes(S.cls)));
+ const groups=[['sp','Damage · uses spell power'],['heal','Healing · uses +healing'],['ap','Physical · uses attack power · estimate']];
+ const has=k=>rows.some(r=>r.k===k);
+ $('st-sp').classList.toggle('off',!has('sp'));$('st-heal').classList.toggle('off',!has('heal'));$('st-ap').hidden=!(S.phys&&has('ap')&&S.mode!=='20');
+ let html=S.mode==='20'?`<p class="est"><b>Unverified.</b> Highest rank you can train by level 20, compared with the same rank in Classic. Forever numbers are from wowforevertalents.com and Classic from Wowhead Classic. Sources disagree for some spells, so check against your beta tooltips. Classic's lower spell power bonus for spells learned before level 20 is included. Physical abilities aren't in this view yet.</p>`:'';
+ const head=`<div class="head"><div>Spell</div><div></div><div>Forever</div><div>Classic</div><div>Status</div></div>`;
+ for(const [k,t] of groups){
+  const rs=rows.filter(r=>r.k===k); if(!rs.length) continue;
+  if(k==='ap'&&!S.phys){ if(S.mode!=='20') html+=`<section><h2><span>Physical · attack power</span></h2><div class="est">Physical abilities are hidden because their scaling hasn't been tested in Forever yet. <button class="link" id="showphys">Show estimates anyway</button></div></section>`; continue;}
+  if(k==='ap'&&S.mode==='20') continue;
+  html+=`<section><h2><span>${t}</span></h2>`;
+  if(k==='ap') html+=`<p class="est"><b>Estimate.</b> Base values are confirmed from the beta, but the weapon-speed rules are Classic's and haven't been tested in Forever yet. Treat these rows as a rough guide. <button class=\"link\" id=\"hidephys\">Hide</button></p><details><summary>Weapon: ${S.wmin}–${S.wmax} damage, ${S.wspd} s speed</summary><div class="stats"><div class="stat"><label for="wmin">Min damage</label><div class="field"><input id="wmin" type="number" min="0" value="${S.wmin}"></div></div><div class="stat"><label for="wmax">Max damage</label><div class="field"><input id="wmax" type="number" min="0" value="${S.wmax}"></div></div><div class="stat"><label for="wspd">Speed (s)</label><div class="field"><input id="wspd" type="number" min="1" step="0.1" value="${S.wspd}"></div></div></div></details>`;
+  html+=head+`<div class="list">${rs.map(row).join('')}</div></section>`;
+ }
+ $('out').innerHTML=html;
+ const sp=$('showphys'); if(sp) sp.onclick=()=>{S.phys=true;render(false)};
+ const hp=$('hidephys'); if(hp) hp.onclick=()=>{S.phys=false;render(false)};
+ ['wmin','wmax','wspd'].forEach(k=>{const i=$(k);if(i)i.addEventListener('change',()=>{S[k]=Math.max(0,+i.value||0);render(false)})});
+ // summary
+ let tot=0,ok=0,worst=null;
+ rows.forEach(r=>{if(r.k==='ap'&&(!S.phys||S.mode==='20'))return;const x=calc(r);if(!x.ok||x.cref==null)return;tot++;if(x.you>=x.cref-0.5)ok++;else{const gap=x.need-x.stat;if(!worst||gap>worst.gap)worst={n:r.n,gap,unit:x.unit}}});
+ const s=$('summary');s.style.setProperty('--cc',COLORS[S.cls]);
+ s.innerHTML=`<div class="big">${S.cls}</div><div><b>${ok}</b> <span>of</span> <b>${tot}</b> <span>comparable abilities match Classic at your stats</span></div>`+(worst?`<div><span>Furthest behind:</span> ${worst.n}, <b>${fmt(worst.gap)}</b> <span>more ${worst.unit}</span></div>`:'<div><span>Everything matches or beats Classic.</span></div>');
+ save();
+ try{history.replaceState(null,'','#'+S.cls)}catch(e){}
+}
+const OV=[['Chain Lightning','Shaman',699],['Earth Shock','Shaman',596],['Flame Shock','Shaman',440],['Immolate','Warlock',419],['Lightning Bolt','Shaman',346],['Wrath','Druid',331],['Corruption','Warlock',320],['Moonfire','Druid',319],['Smite','Priest',312],['Shadow Bolt','Warlock',282],['Fireball','Mage',211],['Greater Heal','Priest',140],['Healing Wave','Shaman',140],['Holy Light','Paladin',140],['Healing Touch','Druid',140],['Mind Blast','Priest',75],['Frostbolt','Mage',74]];
+$('ov').innerHTML=OV.map(([n,c,v])=>`<button class="ovr" data-c="${c}" style="--cc:${COLORS[c]}"><div class="l">${n}<span>${c}</span></div><div><div class="b" style="width:${v/700*100}%"></div></div><div class="v">${v}</div></button>`).join('');
+$('ov').querySelectorAll('.ovr').forEach(b=>b.onclick=()=>{S.cls=b.dataset.c;setTab('calc');render();$('t-calc').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})});
+render();
+const CH=[
+['Mage','Damage','Fireball and Scorch lose the most',['Fireball','Frostbolt','Arcane Missiles','Fire Blast','Scorch','Pyroblast','Arcane Explosion','Blizzard','Flamestrike'],'Arcane Missiles gets a higher coefficient in Forever (143% vs 120%), so it passes Classic quickly. Flamestrike and Blizzard are per target.'],
+['Priest','Damage','Shadow barely moves, holy damage halves',['Shadow Word: Pain','Mind Blast','Mind Flay','Devouring Plague','Smite','Holy Fire','Holy Nova'],'Shadow Word: Pain and Devouring Plague get bigger coefficients in Forever (120% and 80%). Smite needs 312 spell power.'],
+['Warlock','Damage','Nearly every nuke and DoT lost about 47%',['Shadow Bolt','Corruption','Immolate','Bane of Agony','Bane of Doom','Searing Pain','Soul Fire','Siphon Life','Death Coil','Hellfire'],'Bane of Agony scales at 159.6% and Bane of Doom at 400% in Forever, so gear wins them back fast.'],
+['Druid','Damage','Wrath lost three quarters of its base damage',['Wrath','Moonfire','Starfire','Insect Swarm','Hurricane'],'Wrath needs 331 spell power to match Classic; Starfire only 159.'],
+['Shaman','Damage','The steepest climb back',['Lightning Bolt','Chain Lightning','Earth Shock','Flame Shock','Frost Shock'],'Chain Lightning is the worst case at 699 spell power, and its coefficient also dropped from 71.4% to 57.1%.'],
+['Paladin','Damage','Few damage spells, small changes',['Holy Shock','Hammer of Wrath','Exorcism'],'Exorcism has no verified Classic base in this data.'],
+['Priest','Healing','About 140 +healing to match',['Greater Heal','Flash Heal','Heal','Renew','Prayer of Healing','Power Word: Shield'],'Prayer of Healing is the outlier: 1070 per target in Classic vs 649, so it needs about 1&#8239;470 +healing. Power Word: Shield is an absorb.'],
+['Druid','Healing','The same 140 across the board',['Healing Touch','Rejuvenation','Regrowth','Tranquility'],'Tranquility is per target over the full channel.'],
+['Paladin','Healing','Holy Light matches at 140, Holy Shock needs more',['Holy Light','Flash of Light','Holy Shock'],'Holy Shock healing needs about 350 +healing.'],
+['Shaman','Healing','The same 140, first target only',['Healing Wave','Lesser Healing Wave','Chain Heal'],'Chain Heal counts the first target only.'],
+];
+const NEWS=[['Damage','Mage','Arcane Blast'],['Damage','Mage','Frostfire Bolt'],['Damage','Priest','Shadow Word: Death'],['Damage','Priest','Penance'],['Damage','Warlock','Incinerate'],['Damage','Warlock','Wrack'],['Damage','Shaman','Lava Burst'],['Healing','Priest','Penance'],['Healing','Shaman','Riptide'],['Healing','Druid','Wild Growth']];
+const find=(c,n,k)=>DATA60.find(r=>r.c===c&&r.n===n&&r.k===k);
+function chapters(){
+ let h='';
+ for(const [c,type,title,spells,note] of CH){
+  const k=type==='Damage'?'sp':'heal', unit=k==='sp'?'SP':'+heal';
+  let rows='';
+  for(const n of spells){const r=find(c,n,k); if(!r) continue;
+   const ch=r.cb&&r.fb?Math.round((r.fb/r.cb-1)*100)+'%':'–';
+   const need=(r.cb&&r.fb&&r.fc)?fmt(Math.max(0,(r.cb-r.fb)/r.fc)):'–';
+   const a=v=>r.fb!=null&&r.fc?fmt(r.fb+r.fc*v):'–';
+   rows+=`<tr><td>${n}<small>r${r.r}</small></td><td>${r.cb!=null?fmt(r.cb):'–'}</td><td>${r.fb!=null?fmt(r.fb):'–'}</td><td class="dn">${ch}</td><td class="gd">${need}</td><td>${a(300)}</td><td class="mu">${a(500)}</td></tr>`;}
+  h+=`<div class="chap" style="--cc:${COLORS[c]}"><div class="eb">${c} · ${type.toLowerCase()}</div><h3>${title}</h3><div class="tw"><table class="rt"><tr><th>Spell</th><th>Classic</th><th>Forever</th><th>Change</th><th>${unit} to match</th><th>Forever @ 300</th><th>@ 500</th></tr>${rows}</table></div><p class="note">${note}</p><button class="open" data-c="${c}">Open ${c} in the calculator</button></div>`;
+ }
+ let nr='';
+ for(const [sh,c,n] of NEWS){const r=find(c,n,sh==='Damage'?'sp':'heal'); if(!r) continue;
+  nr+=`<tr><td>${n}<small>${c}</small></td><td class="mu">${sh}</td><td>${Math.round(r.fc*1000)/10}%</td><td>${fmt(r.fb)}</td><td class="gd">${fmt(r.fb+r.fc*300)}</td><td class="mu">${fmt(r.fb+r.fc*500)}</td></tr>`;}
+ h+=`<div class="chap" style="--cc:var(--gold)"><div class="eb">New in Forever</div><h3>New spells have no Classic number to chase</h3><div class="tw"><table class="rt"><tr><th>Spell</th><th>Type</th><th>Coefficient</th><th>0 SP</th><th>@ 300</th><th>@ 500</th></tr>${nr}</table></div><p class="note">Bonuses like Incinerate's +25% with Immolate or Lava Burst's +20% with Flame Shock aren't included.</p></div>`;
+ h+=`<div class="chap" style="--cc:#C69B6D"><div class="eb">Physical damage</div><h3>Melee mostly untouched; hunters take the hit</h3><div class="tw"><table class="rt"><tr><th>Ability</th><th>Class</th><th>Classic</th><th>Forever</th></tr>
+<tr><td>Backstab</td><td class="mu">Rogue</td><td>150% weapon + 225</td><td class="gd">150% weapon + 150</td></tr>
+<tr><td>Aimed Shot</td><td class="mu">Hunter</td><td>+600</td><td class="gd">+166</td></tr>
+<tr><td>Raptor Strike</td><td class="mu">Hunter</td><td>+140</td><td class="gd">weapon + 70</td></tr>
+<tr><td>Bloodthirst</td><td class="mu">Warrior</td><td>45% AP</td><td class="gd">35% AP + 48</td></tr>
+<tr><td>Heroic Strike, Mortal Strike, Overpower, Cleave, Sinister Strike, Ambush</td><td class="mu">Warrior, Rogue</td><td>–</td><td>unchanged</td></tr></table></div><p class="note">With a 2.8 s ranged weapon, a hunter needs about 2&#8239;170 more ranged attack power for Aimed Shot to match Classic.</p></div>`;
+ $('chapters').innerHTML=h;
+ $('chapters').querySelectorAll('.open').forEach(b=>b.onclick=()=>{S.cls=b.dataset.c;setTab('calc');render();window.scrollTo({top:$('t-calc').getBoundingClientRect().top+scrollY-8})});
+}
+var setTab=function(v){S.tab=v;$('t-read').setAttribute('aria-selected',v==='read');$('t-calc').setAttribute('aria-selected',v==='calc');
+ ROOT.querySelectorAll('.v-read').forEach(e=>e.hidden=v!=='read');ROOT.querySelectorAll('.v-calc').forEach(e=>e.hidden=v!=='calc');save();};
+$('t-read').onclick=()=>setTab('read');$('t-calc').onclick=()=>setTab('calc');
+chapters();
+setTab(ORDER.includes(location.hash.slice(1))&&S.tab!=='read'?'calc':(S.tab||'read'));
+
+const goCalc=()=>{setTab('calc');render(false);$('t-calc').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})};
+$('cta').onclick=goCalc;
+const _setTab=setTab;setTab=function(v){_setTab(v);$('cta').hidden=v!=='read'};
+setTab(S.tab);
+
+})();</script>
+<script>(()=>{const ROOT=document.getElementById('prof');
+
+const COLORS={Mage:'#3FC7EB',Priest:'#F0EEE8',Warlock:'#8788EE',Druid:'#FF7C0A',Shaman:'#2F8BFF',Paladin:'#F48CBA',Warrior:'#C69B6D',Rogue:'#FFF468',Hunter:'#AAD372'};
+const ORDER=Object.keys(COLORS);
+// stats each class leans on while leveling
+const USES={Mage:['int','spirit','mana','stamina'],Priest:['int','spirit','mana','stamina'],Warlock:['int','spirit','mana','stamina'],
+Druid:['int','spirit','mana','ap','map','str','crit','stamina'],Shaman:['int','mana','ap','map','str','crit','stamina'],Paladin:['str','ap','map','crit','int','mana','stamina'],
+Warrior:['str','ap','map','crit','stamina'],Rogue:['ap','map','crit','agi','stamina'],Hunter:['ap','crit','agi','int','mana','stamina']};
+const STATNAME={int:'Intellect',spirit:'Spirit',mana:'mana regen',stamina:'Stamina',ap:'attack power',str:'Strength',crit:'crit',agi:'Agility',all:'all stats'};
+// camp object (skill 20) + facts
+const P=[
+{n:'Leatherworking',type:'craft',camp:{o:'Camp Tent',b:'Rested XP up to 5% of a level',stats:['xp'],src:'d'},xp:true,
+ facts:[['Camp','Camp Tent (20): tops up rested XP to 5% of a level for everyone sitting nearby','d'],['Upgrades','Tanning Rack (140): makes certain reagents · Sewing Machine (300): needed for some recipes. Both keep the tent effect','d'],['Crafts','Leather and mail armor, incl. the leather and mail tier sets','d']]},
+{n:'Skinning',type:'gather',camp:{o:'Camp Chair',b:'+2% crit with spells and attacks',stats:['crit'],src:'d'},passive:'+5% damage to beasts and dragonkin',
+ facts:[['Camp','Camp Chair (20): +2% crit chance with all spells and attacks (doesn\'t stack with Moonkin Aura)','d'],['Upgrades','Field Guide (140): read it to gain Track Beasts · Trapper\'s Workbench (300): holds 1 trap','d'],['Passive','+5% damage to beasts and dragonkin','r'],['Gold','Fel Leather and Cured Rugged Hide go into every leather/mail tier piece','d']]},
+{n:'Mining',type:'gather',camp:{o:'Lodestone',b:'+90 melee attack power',stats:['map'],src:'d'},passive:'+5% health',
+ facts:[['Camp','Lodestone (20): +90 melee attack power (doesn\'t stack with Blessing of Might)','d'],['Upgrades','Rock Garden (140): spawns a common mining node over time · Molten Foundry (300): needed for Heavy Thorium','d'],['Passive','+5% health','r'],['Gold','Heavy Thorium and Arcanite go into plate tier pieces and raid weapons','d']]},
+{n:'Herbalism',type:'gather',camp:{o:'Incense Candle',b:'+25 Intellect',stats:['int'],src:'d'},passive:'Magic resistance that grows with skill',
+ facts:[['Camp','Incense Candle (20): +25 Intellect (doesn\'t stack with Arcane Intellect)','d'],['Upgrades','Greenhouse (140): grows herbs from seeds over time · Seed Hybridizer (300): multiplies seeds or combines them into rarer ones','d'],['Passive','Resistance to all magic schools, rising with skill','r'],['Gold','New flasks need Death Lotus, Demonsage and Marefoil','d']]},
+{n:'Tailoring',type:'craft',camp:{o:'Faction Banner',b:'+32 Spirit',stats:['spirit'],src:'d'},
+ facts:[['Camp','Faction Banner (20): +32 Spirit (doesn\'t stack with Divine Spirit)','d'],['Upgrades','Spinning Wheel (140): makes certain reagents · Loom (300): needed for some recipes','d'],['Crafts','Cloth armor incl. the cloth tier sets, bags','d']]},
+{n:'Alchemy',type:'craft',camp:{o:'Mana Well',b:'29 mana every 5 sec',stats:['mana'],src:'d'},
+ facts:[['Camp','Mana Well (20): 29 mana per 5 sec (doesn\'t stack with Blessing of Wisdom)','d'],['Upgrades','Fermenter (140): makes certain reagents · Alchemy Laboratory (300): needed for some recipes','d'],['Change','Healing potions moved to First Aid','d']]},
+{n:'Blacksmithing',type:'craft',camp:{o:'Sharpening Wheel',b:'+34 Strength',stats:['str'],src:'d'},
+ facts:[['Camp','Sharpening Wheel (20): +34 Strength (doesn\'t stack with Strength of Earth Totem)','d'],['Upgrades','Anvil (140) · Master Forge (300): needed for some recipes','d'],['Crafts','Plate armor incl. the plate tier sets, weapons','d']]},
+{n:'Enchanting',type:'craft',camp:{o:'Enchanted Lute',b:'+308 armor, +13 all stats, +22 resistances',stats:['all'],src:'d'},
+ facts:[['Camp','Enchanted Lute (20): +308 armor, +13 all stats, +22 all resistances (doesn\'t stack with Mark of the Wild)','d'],['Upgrades','Arcane Salvager (140): more efficient disenchanting · Arcane Forge (300): needed for some recipes','d'],['Leveling','Needs cloth or gear to disenchant, so it costs you while leveling','c']]},
+{n:'Engineering',type:'craft',camp:{o:'Reagent Bot',b:'Buy reagents at camp',stats:[],src:'d'},
+ facts:[['Camp','Reagent Bot (20): buy reagents · Repair Bot (140): also repairs gear · Anarchist\'s Workbench (300): needed for some recipes','d'],['Leveling','Bombs and gadgets help with pulls and escapes','c']]},
+];
+const S2=[
+{n:'Cooking',camp:{o:'Campfire',b:'Holds 3 / 5 / 10 camp objects',stats:[],src:'d'},facts:[['Camp','Basic Campfire (1): 3 objects · Journeyman (90): 5 · Expert (200): 10 · Cookie\'s Feast (140): Stamina food · Iron Oven (300): for top recipes','d'],['Food','Stat foods give +20 Agility, Intellect or Strength for 15 min; Sweetpaw Jam gives +15% speed in Hyjal','d'],['XP','One food shown at BlizzCon gave +5% XP from kills','r']]},
+{n:'First Aid',camp:{o:'First Aid Kit',b:'+56 Stamina',stats:['stamina'],src:'d'},facts:[['Camp','First Aid Kit (20): +56 Stamina (doesn\'t stack with Power Word: Fortitude) · Toxin Study (140) and Plague Doctor\'s Laboratory (300) also hold potions and cures','d'],['Crafts','Healing potions up to Major (1400 health), tourniquets, poultices and anti-venom','d']]},
+{n:'Fishing',camp:{o:'Fish Bowl',b:'+8% all stats',stats:['all'],src:'d'},facts:[['Camp','Fish Bowl (20): +8% all stats (doesn\'t stack with Blessing of Kings) · Fishing Rack (140): uncommon fish for 60 min · Fishing Hut (300): rare fish','d'],['Perk','Luremaster: chance for an extra fish with a lure','r']]},
+];
+const TAG={d:['t-d','Datamined'],r:['t-r','Reported'],u:['t-u','Unclear'],c:['t-c','Classic']};
+const S={cls:'Mage',open:null,kit:3,group:['Leatherworking','Herbalism','Skinning','—','—']};
+try{Object.assign(S,JSON.parse(localStorage.getItem('fpp')||'{}'))}catch(e){}
+const save=()=>{try{localStorage.setItem('fpp',JSON.stringify(S))}catch(e){}};
+const $=id=>document.getElementById('p_'+id);
+
+function score(p){
+ const u=USES[S.cls], why=[]; let s=0;
+ if(p.xp){s+=2;why.push(['Rested XP from camp (one per group is enough)',1]);}
+ const cs=p.camp.stats;
+ if(cs.includes('all')||cs.some(x=>u.includes(x))){s+=2;why.push(['Camp buff: '+p.camp.b,1]);}
+ else if(cs.length&&!cs.includes('xp')) why.push(['Camp buff: '+p.camp.b+' (not for you)',0]);
+ if(p.passive){s+=1;why.push([p.passive,1]);}
+ if(p.type==='gather'){s+=1;why.push(['Sells while leveling',1]);}
+ const LA={Tailoring:['cloth'],Leatherworking:['leather','mail'],Blacksmithing:['plate','mail']}[p.n];
+ if(LA&&LA.includes(ARMOR[S.cls])){s+=1;why.push(['Crafts your '+ARMOR[S.cls]+' armor while leveling',1]);}
+ return {s,why};
+}
+
+const ARMOR={Mage:'cloth',Priest:'cloth',Warlock:'cloth',Rogue:'leather',Druid:'leather',Hunter:'mail',Shaman:'mail',Warrior:'plate',Paladin:'plate'};
+const SYN=[['Herbalism','Alchemy','Your own herbs for flasks, transmutes and elixirs.'],['Mining','Blacksmithing','Your own ore and bars, incl. Heavy Thorium from the Molten Foundry.'],['Skinning','Leatherworking','Your own leather and hides.'],['Mining','Engineering','Your own ore for parts and explosives.'],['Tailoring','Enchanting','Disenchant what you sew; cloth drops for free.']];
+const NAMES=['Leatherworking','Skinning','Mining','Herbalism','Tailoring','Alchemy','Blacksmithing','Enchanting','Engineering'];
+function bestPairs(sc){const out=[];for(let i=0;i<NAMES.length;i++)for(let j=i+1;j<NAMES.length;j++){const a=NAMES[i],b=NAMES[j];const syn=SYN.find(s=>(s[0]===a&&s[1]===b)||(s[0]===b&&s[1]===a));out.push({a:syn?syn[0]:a,b:syn?syn[1]:b,s:sc(a)+sc(b)+(syn?2:0),syn:syn?syn[2]:''});}return out.sort((x,y)=>y.s-x.s||(y.syn?1:0)-(x.syn?1:0));}
+function renderPairs(id,sc){const ps=bestPairs(sc).slice(0,4);$(id).innerHTML=ps.map((p,i)=>`<div class="buff"><div><b>${ps.findIndex(q=>q.s===p.s)+1}. ${p.a} + ${p.b}</b> <span>${p.syn?'· '+p.syn:''}</span></div><span class="score">${p.s}</span></div>`).join('');}
+const KEY={
+Alchemy:'Four new Natural flasks (skill 320): +60 Stamina for 2 h, plus 5% hit, 4% crit, 5% haste or 5% less dodge/parry inside Hyjal and Barrow Deeps · Elixirs of the Owl, Grizzly, Whale and Sages (+25 stat, +2% crit) · Transmute: Legionite (Heavy Thorium Bar + Fel Crystal)',
+Blacksmithing:'Plate tier sets (Glory, Justice) · Legionite Glaive (53.9 dps, +54 AP, +10 hit) · Forest Defender\'s Axe (61.5 dps) · Stalwart Helm (+38 SP, +20 hit) · Champion\'s and Martyr\'s Legplates · Azerothium Legplates',
+Leatherworking:'Leather and mail tier sets (Grimstitch, Grovekeeper, Wildstalker, Spiritcaller) · Outlaw\'s Collar (+31 Sta, +21 Agi, +21 crit) · Dawn Armor (+37 Agi, +14 crit, +10 hit) · Living Crown (+73 healing) · Ironfeather Leggings (+38 SP) · Wild Leather Armor Kit (+4 Defense, +10 Sta)',
+Tailoring:'Cloth tier sets (Manaflare, Demonheart, Conviction) · Robes of Fiery Devastation (+26 fire damage) · Fel Cape, Cloak of Earth and Sky · Mana-infused Cord, Rime-encrusted Boots · Bottomless Reagent Bag, Felblood Soul Bag',
+Enchanting:'Heart of the Mountain trinkets (Molten, Frozen, Dormant) · class relics (Idol of Swiftness, Libram of Infusion, Totem of Urgency and more) · Torch of Light wand (76.7 dps)',
+Engineering:'SAF-T Teleport (20 yd forward) · SAF-T Nitro Boosts (+140% speed, 8 s) · EZ-Thro Mana Bomb and Dark Bomb · Stealthman 52 · Gnomish Poultryizer · Hyper Deluxe Sniper Rifle · SAF-T Ultra Precision Scope (+2% crit) · Loot-A-Rang',
+Mining:'Smelt Azerothium (275) · Smelt Heavy Thorium (300, needs the Molten Foundry)',
+Herbalism:'Only camp objects: Incense Candle, Greenhouse, Seed Hybridizer',
+Skinning:'No new recipes'};
+var render=function(){
+ ROOT.querySelectorAll('.cls').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===S.cls));
+ const list=P.map(p=>({p,...score(p)})).sort((a,b)=>b.s-a.s||(b.p.xp?1:0)-(a.p.xp?1:0)||a.p.n.localeCompare(b.p.n));
+ const max=7;
+ $('rank').innerHTML=list.map((x,i)=>{
+  const open=S.open===x.p.n;
+  return `<button class="pr ${i<2?'top':''}" data-n="${x.p.n}" aria-expanded="${open}"><div class="pos">${i+1}</div><div><div class="pn">${x.p.n}<small>${x.p.type==='gather'?'gathering':'crafting'}</small></div><div class="why">${x.why.map(([t,h])=>`<span class="chip ${h?'hit':''}">${t}</span>`).join('')}</div></div><div class="bar"><i style="width:${x.s/max*100}%"></i></div><div class="score">${x.s}</div></button>`+
+  (open?`<div class="detail">${(KEY[x.p.n]?[['Key recipes',KEY[x.p.n],'d']]:[]).concat(x.p.facts).map(([k,v,t])=>`<div class="fact"><span class="k">${k}</span><span>${v}</span><span class="tag ${TAG[t][0]}">${TAG[t][1]}</span></div>`).join('')}</div>`:'');
+ }).join('');
+ $('rank').querySelectorAll('.pr').forEach(b=>b.onclick=()=>{S.open=S.open===b.dataset.n?null:b.dataset.n;render()});
+ $('sec').innerHTML=S2.map(p=>`<div class="detail" style="padding-left:16px;background:var(--panel)"><div class="pn">${p.n}</div>${p.facts.map(([k,v,t])=>`<div class="fact"><span class="k">${k}</span><span>${v}</span><span class="tag ${TAG[t][0]}">${TAG[t][1]}</span></div>`).join('')}</div>`).join('');
+ // pick
+ const g=list.filter(x=>x.p.type==='gather'), top=list[0], second=list.find(x=>x!==top&&(top.p.type==='craft'?x.p.type==='gather':true));
+ const allp=bestPairs(n=>{const x=list.find(y=>y.p.n===n);return x?x.s:0;}), bp=allp[0], ties=allp.filter(p=>p!==bp&&p.s===bp.s).slice(0,2);
+ const gg=g.slice(0,2).map(x=>x.p.n);
+ $('pick').style.setProperty('--cc',COLORS[S.cls]);
+ $('pick').innerHTML=`<div class="pickcard" style="border-color:${COLORS[S.cls]}"><div class="k">Best pair for leveling · ${S.cls}</div><div class="v">${bp.a} + ${bp.b}</div><p>${bp.syn?bp.syn+' ':''}Score ${bp.s}${bp.syn?' incl. +2 for a self-supplying pair':''}.${ties.length?` <b style="color:var(--text)">Tied with ${ties.map(p=>p.a+' + '+p.b).join(' and ')}</b>, so pick by what you enjoy.`:''}</p></div>
+ <div class="pickcard"><div class="k">Most gold while leveling</div><div class="v">${gg.join(' + ')}</div><p>Two gathering professions: sell everything you collect. How well each sells in Forever is unknown until launch.</p></div>
+ <div class="pickcard"><div class="k">Always take</div><div class="v">Cooking + First Aid</div><p>Food with XP and stat buffs, and healing potions now come from First Aid.</p></div>`;
+ renderPairs('pairs',n=>{const x=list.find(y=>y.p.n===n);return x?x.s:0;});
+ // camp
+ ROOT.querySelectorAll('.kit .seg button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.k===S.kit));
+ const opts=['—',...P.map(p=>p.n),...S2.filter(p=>p.n!=='Cooking').map(p=>p.n)];
+ $('group').innerHTML=S.group.map((v,i)=>`<div class="slot"><label for="p_g${i}">Player ${i+1}</label><select id="p_g${i}">${opts.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select></div>`).join('');
+ S.group.forEach((v,i)=>$('g'+i).onchange=e=>{S.group[i]=e.target.value;render()});
+ const all=[...P,...S2]; const chosen=S.group.filter(v=>v!=='—').map(n=>all.find(p=>p.n===n)).filter(Boolean);
+ const seen=new Set(); let used=0;
+ $('camp').innerHTML=chosen.length?chosen.map(p=>{const dup=seen.has(p.n);seen.add(p.n);const fits=!dup&&used<S.kit;if(fits)used++;
+  return `<div class="buff ${fits?'':'off'}"><div><b>${p.camp.o}</b> <span>· ${p.n}</span></div><span>${fits?p.camp.b:(dup?'Same object twice: buffs don\'t stack':'No room: campfire is full')}</span></div>`}).join(''):'<p class="note">Pick at least one player.</p>';
+ save();
+};
+ORDER.forEach(c=>{const b=document.createElement('button');b.className='cls';b.textContent=c;b.dataset.c=c;b.style.setProperty('--cc',COLORS[c]);b.onclick=()=>{S.cls=c;render()};$('classes').appendChild(b)});
+ROOT.querySelectorAll('.kit .seg button').forEach(b=>b.onclick=()=>{S.kit=+b.dataset.k;render()});
+render();
+const MELEE=['Warrior','Rogue','Paladin','Shaman','Hunter','Druid'];
+const GEAR=[
+{n:'Tailoring',arm:['cloth'],perks:[['Cloak embroideries','r']],facts:[['Crafts','Cloth armor; bags','c'],['Only for you','Cloak embroideries','r'],['Camp','Faction Banner: Spirit','d']]},
+{n:'Leatherworking',arm:['leather','mail'],perks:[['Armor kits, mounted speed saddle','r']],facts:[['Crafts','Leather and mail armor','c'],['Only for you','Armor kits, mounted speed saddle','r'],['Camp','Camp Tent: rested XP','d']]},
+{n:'Blacksmithing',arm:['plate','mail'],weap:true,perks:[['Belt buckles with stats','r'],['Repair All anywhere','r']],facts:[['Crafts','Plate and mail armor, weapons (e.g. Enriched Thorium Breastplate)','r'],['Only for you','Belt buckles with stats; Repair All ability','r'],['Camp','Sharpening Wheel: Strength (one source says 34)','u']]},
+{n:'Engineering',arm:[],perks:[['SAF-T Teleport (20 yd) and Nitro Boosts (+140% speed)','d'],['Stealthman 52 stealth field, bombs that stun or burn mana','d']],facts:[['Only for you','Tinkerbox: Teleport (20 yd, 3 min cd), Nitro Boosts (up to 160% speed, 8 s)','r'],['Only for you','Stealthman 52 (stealth while still), Emergency Field Cloak (10 s invisibility)','r'],['Note','No stat bonus; strongest in PvP','r']]},
+{n:'Enchanting',arm:[],perks:[['Ring and necklace enchants','r'],['Class relics and Heart of the Mountain trinkets','d'],['Disenchants raid loot for tier-set essence','d']],facts:[['Only for you','Ring and necklace enchants (self-only is not confirmed)','r'],['Crafts','Class relics with mana or cooldown effects','r'],['Tier sets','Malleable Essence of Nature comes from disenchanting raid loot','d']]},
+{n:'Alchemy',arm:[],cons:'Raid flasks (+60 Sta, bonus in Hyjal and Barrow Deeps) and Transmute: Legionite',perks:[['Upgradeable Philosopher\'s Stone trinket','r']],facts:[['Only for you','Philosopher\'s Stone trinket that upgrades','r'],['Change','Healing potions moved to First Aid','r'],['Camp','Mana Well: 29 mana per 5 sec','d']]},
+{n:'Mining',arm:[],perks:[['+5% health','r']],facts:[['Passive','+5% health','r'],['Camp','Lodestone: attack power','d']]},
+{n:'Skinning',arm:[],perks:[['+5% damage to beasts and dragonkin','r']],facts:[['Passive','+5% damage to beasts and dragonkin (many raid bosses are dragons)','r'],['Camp','Camp Chair: crit chance','d']]},
+{n:'Herbalism',arm:[],perks:[['Magic resistance that grows with skill','r']],facts:[['Passive','Resistance to all magic schools, rising with skill','r'],['Camp','Incense Candle: Intellect','d']]},
+];
+const TIER=[
+{"s":"Manaflare Regalia","c":"Mage","p":"Tailoring","b":["Improves your chance to hit by 1.0%.","Reduces the cooldown on your Counterspell spell by 5 sec.","Increases damage done by your spells and effects by up to 21 when fighting Elementals.","Your Frostfire Bolt spell has a 10% increased chance to trigger Missile Barrage, gains 10% increased critical strike chance while your Combustion spell is active, and has a 10% increased chance to trigger Fingers of Frost."]},
+{"s":"Demonheart Raiment","c":"Warlock","p":"Tailoring","b":["Improves your chance to hit by 1.0%.","Reduces the cast time of your Banish spell by 1.5 sec.","Increases damage done by your spells and effects by up to 21 when fighting Demons.","Your Life Tap generates 20% more Mana at no additional Health cost."]},
+{"s":"Vestments of Conviction","c":"Priest","p":"Tailoring","b":["Increased Spirit +10","Reduces the cooldown on your Fear Ward spell by 60 sec.","Increases healing done by up to 26 and damage done by up to 9 for all magical spells and effects.","Reduces the cooldown on your Penance and Prayer of Mending spells by 1 sec."]},
+{"s":"Raiments of Conviction","c":"Priest","p":"Tailoring","b":["Improves your chance to hit by 1.0%.","Increases the duration of your Shackle Undead spell by 10 sec.","Increases damage done by your spells and effects by up to 21 when fighting Undead.","Reduces the cooldown on your Devouring Plague spell by 60 sec."]},
+{"s":"Grimstitch Armor","c":"Rogue","p":"Leatherworking","b":["Improves your chance to hit by 1.0%.","Reduces the cooldown on your Kidney Shot ability by 3 sec.","+36 Attack Power against Humanoids.","Reduces the cost of your Envenom and Eviscerate abilities by 5 Energy."]},
+{"s":"Wildstalker Armor","c":"Hunter","p":"Leatherworking","b":["Increases your attack speed and casting speed by 1%.","Reduces the cooldown on your Frost Trap and Freezing Trap abilities by 3 sec.","+36 Attack Power against Beasts.","Reduces the cooldown on your Aimed Shot and Multi-Shot abilities by 1 sec."]},
+{"s":"The Spiritcaller","c":"Shaman","p":"Leatherworking","b":["Increased Spirit +10","Increases the radius of effect of your beneficial Fire and Water totems by 10 yards.","Increases healing done by up to 26 and damage done by up to 9 for all magical spells and effects.","Reduces the cooldown on your Riptide spell by 1 sec."]},
+{"s":"The Spiritcaller's Rage","c":"Shaman","p":"Leatherworking","b":["Increases your attack speed and casting speed by 1%.","Increases the radius of effect of your beneficial Air and Earth totems by 10 yards.","+36 Attack Power against Elementals.","Reduces the cooldown on your Stormstrike ability by 0.5 sec."]},
+{"s":"The Spiritcaller's Storm","c":"Shaman","p":"Leatherworking","b":["Improves your chance to hit by 1.0%.","Reduces the cooldown on your Earthbind Totem spell by 2 sec.","Increases damage done by your spells and effects by up to 21 when fighting Elementals.","Reduces the cooldown on your Lava Burst spell by 1 sec."]},
+{"s":"Grovekeeper Raiment","c":"Druid","p":"Leatherworking","b":["Increased Spirit +10","Reduces the cooldown on your Barkskin spell by 10 sec.","Increases healing done by up to 26 and damage done by up to 9 for all magical spells and effects.","Reduces the cooldown on your Swiftmend spell by 3.0 sec."]},
+{"s":"Grovekeeper Rage","c":"Druid","p":"Leatherworking","b":["Increased Defense +7","Your Rebirth spell is now castable in Bear Form and Dire Bear Form and its cast time is reduced by 2.0 sec while you are in Bear Form or Dire Bear Form.","Reduces the chance for your melee attacks to be Dodged or Parried by 1.2%.","Reduces the cooldown on your Berserk ability by 15.0 sec."]},
+{"s":"Grovekeeper Eclipse","c":"Druid","p":"Leatherworking","b":["Improves your chance to hit by 1.0%.","Reduces the cooldown on your Nature's Grasp spell by 15 sec.","Increases damage done by your spells and effects by up to 21 when fighting Demons.","Increases the duration of your Insect Swarm spell by 3 sec."]},
+{"s":"Grovekeeper Ferocity","c":"Druid","p":"Leatherworking","b":["Increases your attack speed and casting speed by 1%.","Your Hibernate spell is now castable in Cat Form and its cast time is reduced by 1.5 sec while you are in Cat Form, but Hibernate gains a cooldown of 15 sec.","+36 Attack Power against Demons.","Reduces the cooldown on your Tiger's Fury ability by 3.0 sec."]},
+{"s":"Battlegear of Glory","c":"Warrior","p":"Blacksmithing","b":["Increases your attack speed and casting speed by 1%.","Reduces the cooldown on your Intimidating Shout ability by 30 sec.","+36 Attack Power against Humanoids.","Reduces the cooldown on your Recklessness ability by 30 sec."]},
+{"s":"Battleplate of Glory","c":"Warrior","p":"Blacksmithing","b":["Increased Defense +7","Reduces the cooldown on your Intervene ability by 10 sec.","Reduces the chance for your melee attacks to be Dodged or Parried by 1.2%.","Reduces the cooldown on your Shield Wall ability by 30 sec."]},
+{"s":"Justice Battlegear","c":"Paladin","p":"Blacksmithing","b":["Increases your attack speed and casting speed by 1%.","Reduces the cooldown on your Hammer of Justice spell by 5 sec.","+36 Attack Power against Demons.","Reduces the cooldown on your Judgement spell by 0.5 sec."]},
+{"s":"Justice Armor","c":"Paladin","p":"Blacksmithing","b":["Increased Spirit +10","Reduces the cooldown on your Blessing of Protection spell by 30 sec.","Increases healing done by up to 26 and damage done by up to 9 for all magical spells and effects.","Reduces the cooldown on your Holy Shock spell by 1 sec."]},
+{"s":"Justice Battleplate","c":"Paladin","p":"Blacksmithing","b":["Increased Defense +7","Reduces the cast time on your Turn Undead spell by 1.5 sec.","Reduces the chance for your melee attacks to be Dodged or Parried by 1.2%.","Reduces the duration of Forbearance any time you gain it by 10.0 sec."]}
+]
+;
+const TIERMAKER={cloth:'Tailoring',leather:'Leatherworking',mail:'Leatherworking',plate:'Blacksmithing'};
+function gearFit(g){
+ const why=[]; let s=0; const a=ARMOR[S.cls];
+ if(g.arm.includes(a)){s+=2;why.push(['Makes your '+a+' armor',1]);} else if(g.arm.length) why.push(['Makes '+g.arm.join(' and ')+' (not yours)',0]);
+ if(g.n===TIERMAKER[a]){s+=3;why.push(['Crafts your class tier set',1]);}
+ if(g.weap&&MELEE.includes(S.cls)){s+=1;why.push(['Makes melee weapons',1]);}
+ g.perks.forEach(([p])=>{s+=1;why.push([p,1]);});
+ if(g.cons){s+=2;why.push([g.cons,1]);}
+ return {s,why,f:s>=3?['s','Strong']:s>=2?['m','Good']:['l','Some']};
+}
+function renderGear(){
+ const list=GEAR.map(g=>({g,...gearFit(g)})).sort((a,b)=>b.s-a.s||a.g.n.localeCompare(b.g.n));
+ $('rank2').innerHTML=list.map((x,i)=>{const open=S.open2===x.g.n;
+  return `<button class="pr g2 ${i<2?'top':''}" data-n="${x.g.n}" aria-expanded="${open}"><div class="pos">${i+1}</div><div><div class="pn">${x.g.n}</div><div class="why">${x.why.map(([t,h])=>`<span class="chip ${h?'hit':''}">${t}</span>`).join('')}</div></div><div class="fit ${x.f[0]}">${x.f[1]}</div></button>`+
+  (open?`<div class="detail">${(KEY[x.g.n]?[['Key recipes',KEY[x.g.n],'d']]:[]).concat(x.g.facts).map(([k,v,t])=>`<div class="fact"><span class="k">${k}</span><span>${v}</span><span class="tag ${TAG[t][0]}">${TAG[t][1]}</span></div>`).join('')}</div>`:'');}).join('');
+ $('tiers').innerHTML=TIER.filter(x=>x.c===S.cls).map(x=>`<div class="buff" style="flex-direction:column;align-items:stretch"><div><b>${x.s}</b> <span>· crafted by ${x.p}</span></div><div class="note" style="line-height:1.5">${x.b.map((b,i)=>`<b style="color:var(--gold)">(${i+2})</b> ${b}`).join('<br>')}</div></div>`).join('');
+ renderPairs('pairs2',n=>{const x=list.find(y=>y.g.n===n);return x?x.s:0;});
+ $('rank2').querySelectorAll('.pr').forEach(b=>b.onclick=()=>{S.open2=S.open2===b.dataset.n?null:b.dataset.n;renderGear()});
+ const a=ARMOR[S.cls], crafter=GEAR.find(g=>g.arm.includes(a)&&(a!=='mail'||g.n==='Leatherworking'));
+ $('pick2').innerHTML=`<div class="pickcard" style="border-color:${COLORS[S.cls]}"><div class="k">Crafts your tier set · ${S.cls}</div><div class="v">${({Tailoring:'Tailoring + Enchanting',Leatherworking:'Skinning + Leatherworking',Blacksmithing:'Mining + Blacksmithing'})[TIERMAKER[a]]}</div><p>${TIERMAKER[a]} crafts 4 of the 6 ${S.cls} tier pieces (legs, hands, shoulders, feet). ${TIERMAKER[a]==='Tailoring'?'Enchanting disenchants the raid loot that gives the essence the recipes need.':'The gatherer supplies the materials.'}</p></div>
+ <div class="pickcard"><div class="k">Best bonuses only you get</div><div class="v">Engineering</div><p>Teleport, speed boost and invisibility gadgets. Biggest edge in PvP; no stat bonus.</p></div>
+ <div class="pickcard"><div class="k">For your guild</div><div class="v">Enchanting</div><p>Every crafted tier piece needs Malleable Essence of Nature from disenchanting raid loot, so every raid needs enchanters.</p></div>`;
+}
+function setGoal(g){S.goal=g;ROOT.querySelectorAll('.goal button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.g===g));
+ ROOT.querySelectorAll('.g-lvl,.g-gear,.g-gold,.g-team,.g-camp').forEach(e=>e.hidden=!e.classList.contains('g-'+g));
+ renderGear();save();}
+ROOT.querySelectorAll('.goal button').forEach(b=>b.onclick=()=>setGoal(b.dataset.g));
+const _render=render; render=function(){_render();renderGear()};
+setGoal(S.goal||'lvl');
+const GOLD=[
+{n:'Herbalism',lvl:'Steady',why:['Every flask, elixir and healing potion starts with herbs','Healing potions now come from First Aid, so everyone buys herbs, not just alchemists','New flasks need Death Lotus plus Demonsage or Marefoil'],tags:['d','r','d']},
+{n:'Alchemy',lvl:'Steady',why:['Flasks are used up every raid (Titans, Supreme Power, Distilled Wisdom + 4 new)','New Transmute: Legionite; Legionite Bar goes into raid weapons like Ironwood Blade','Lost healing potions to First Aid'],tags:['d','d','r']},
+{n:'Mining',lvl:'Steady',why:['Heavy Thorium and Arcanite go into every plate tier piece','Heavy Thorium (needs the Molten Foundry camp object) goes into raid recipes','New: Smelt Azerothium'],tags:['d','d','d']},
+{n:'Enchanting',lvl:'Good',why:['Enchants are a service people pay for with every gear upgrade','New necklace, bracer and glove enchants','Raid essence for tier sets comes from disenchanting, but it may be bind-on-pickup'],tags:['c','d','u']},
+{n:'Skinning',lvl:'Good',why:['Fel Leather and Cured Rugged Hide go into every leather and mail tier piece','Rare hides from skinning','Weaker late: fewer recurring buyers than herbs'],tags:['d','r','c']},
+{n:'Tailoring',lvl:'Some',why:['Bags always sell: Bottomless Reagent Bag, Felblood Soul Bag, Mooncloth bags','Cloth armor is mostly bought once'],tags:['d','c']},
+{n:'Engineering',lvl:'Some',why:['Bombs and gadgets for PvP; many items only usable by engineers','Scopes and rifles for hunters'],tags:['r','d']},
+{n:'Leatherworking',lvl:'Some',why:['Armor kits get used up','81 recipes bought with Merchant\'s Favor may be rare to have','Gear is mostly bought once'],tags:['r','d','c']},
+{n:'Blacksmithing',lvl:'Some',why:['Weapon stones get used up','Raid weapons need several professions and raid essence, so few can make them','Gear is mostly bought once'],tags:['d','d','c']},
+];
+function renderGold(){const L={Steady:'s',Good:'m',Some:'l'};
+ $('goldrank').innerHTML=GOLD.map((g,i)=>{const open=S.openG===g.n;return `<button class="pr g2 ${i<3?'top':''}" data-n="${g.n}" aria-expanded="${open}"><div class="pos">${i+1}</div><div><div class="pn">${g.n}</div><div class="why"><span class="chip hit">${g.why[0]}</span></div></div><div class="fit ${L[g.lvl]}">${g.lvl}</div></button>`+
+ (open?`<div class="detail">${g.why.map((w,j)=>`<div class="fact"><span class="k">${j?'Also':'Demand'}</span><span>${w}</span><span class="tag ${TAG[g.tags[j]][0]}">${TAG[g.tags[j]][1]}</span></div>`).join('')}</div>`:'');}).join('');
+ $('goldrank').querySelectorAll('.pr').forEach(b=>b.onclick=()=>{S.openG=S.openG===b.dataset.n?null:b.dataset.n;renderGold()});}
+renderGold();
+
+const ROLES=[
+{c:'Leatherworking',g:'Skinning',pref:['leather','mail'],why:'One Camp Tent gives the whole group rested XP; makes leather and mail'},
+{c:'Alchemy',g:'Herbalism',pref:['cloth','mail','leather'],casters:true,why:'Flasks for every raid, Transmute: Legionite for raid crafting'},
+{c:'Enchanting',g:'Tailoring',pref:['cloth'],why:'Enchants the group\'s gear and disenchants raid loot into tier-set essence; Tailoring makes cloth'},
+{c:'Blacksmithing',g:'Mining',pref:['plate','mail'],why:'Plate and mail armor, weapons and weapon stones; Mining feeds it Heavy Thorium'},
+{c:'Engineering',g:'Mining',pref:['leather','mail','plate','cloth'],why:'Gadgets, bombs and rifle scopes; strongest in PvP'},
+];
+const CASTER=['Mage','Priest','Warlock','Druid','Shaman','Paladin'];
+S.team=S.team||['Mage','Warrior','Priest','Hunter','Rogue'];
+function plan(){const members=S.team.map((c,i)=>({i,c})).filter(m=>m.c!=='—');const out={};const free=[...members];
+ for(const r of ROLES){if(!free.length)break;
+  free.sort((a,b)=>{const pa=r.pref.indexOf(ARMOR[a.c]),pb=r.pref.indexOf(ARMOR[b.c]);const sa=(pa<0?9:pa)-(r.casters&&CASTER.includes(a.c)?.5:0),sb=(pb<0?9:pb)-(r.casters&&CASTER.includes(b.c)?.5:0);return sa-sb||a.i-b.i;});
+  const m=free.shift();out[m.i]=r;}
+ return {members,out,missing:ROLES.filter(r=>!Object.values(out).includes(r))};}
+function renderTeam(){
+ const opts=['—',...ORDER];
+ $('team').innerHTML=S.team.map((v,i)=>`<div class="slot"><label for="p_t${i}">Player ${i+1}</label><select id="p_t${i}">${opts.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select></div>`).join('');
+ S.team.forEach((v,i)=>$('t'+i).onchange=e=>{S.team[i]=e.target.value;renderTeam();save();});
+ const p=plan();
+ $('plan').innerHTML=p.members.length?p.members.map(m=>{const r=p.out[m.i];return `<div class="buff"><div><b style="color:${COLORS[m.c]}">Player ${m.i+1} · ${m.c}</b> <span>· ${r.why}</span></div><b>${r.g} + ${r.c}</b></div>`}).join(''):'<p class="note">Add at least one player.</p>';
+ const has=n=>Object.values(p.out).some(r=>r.c===n||r.g===n);
+ const camp=Object.values(p.out).map(r=>r.c==='Leatherworking'?'Camp Tent (rested XP)':r.c==='Alchemy'?'Mana Well':r.c==='Enchanting'?'Enchanted Lute':r.c==='Blacksmithing'?'Sharpening Wheel':'Reagent Bot');
+ $('cover').innerHTML=`<div class="pickcard"><div class="k">Covered</div><p>${['Rested XP','Raid flasks','Enchants + disenchanting','Plate/mail crafting','Engineering gadgets'].filter((x,i)=>has(ROLES[i].c)).join(' · ')||'Nothing yet'}</p></div>
+ <div class="pickcard"><div class="k">Still open</div><p>${p.missing.length?p.missing.map(r=>r.c).join(', ')+': add more players, or give someone a second crafting profession instead of a gatherer.':'Everything important is covered.'}</p></div>
+ <div class="pickcard"><div class="k">Camp objects you'd bring</div><p>${camp.join(' · ')||'—'}</p><p><button class="linkbtn" id="p_tocamp">See the buffs in Camp buffs →</button></p></div>`;
+ const tc=$('tocamp'); if(tc) tc.onclick=()=>setGoal('camp');
+}
+renderTeam();
+
+
+})();</script>
+<script>
+(()=>{const c=document.getElementById('calcapp'),p=document.getElementById('prof'),tp=document.getElementById('t-prof');
+const h1=c.querySelector('header h1'),lede=c.querySelector('header .lede'),H0=h1.innerHTML,L0=lede.innerHTML;
+const ph=p.querySelector('header');
+function enter(push){c.classList.add('profmode');p.hidden=false;
+ c.querySelectorAll('.tabs .tab').forEach(b=>b.setAttribute('aria-selected',b===tp));
+ h1.innerHTML=ph.querySelector('h1').innerHTML;lede.innerHTML=ph.querySelector('.lede').innerHTML;
+ if(push){try{history.replaceState(null,'','#professions')}catch(e){}}}
+function exit(){if(!c.classList.contains('profmode'))return;c.classList.remove('profmode');p.hidden=true;tp.setAttribute('aria-selected','false');h1.innerHTML=H0;lede.innerHTML=L0;
+ try{if(location.hash==='#professions')history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
+tp.addEventListener('click',()=>enter(true));
+['t-read','t-calc','cta','fab'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('click',exit,true);});
+if(INIT_HASH==='#professions')enter(true);})();
+</script>
